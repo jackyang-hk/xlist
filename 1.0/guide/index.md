@@ -20,7 +20,7 @@ Xlist是基于html5的无尽下拉列表实现
 
 ## DEMO
 
-[默认](./demo/default.html)
+[默认](./demo/index.html)
 
 [附着物](./demo/stickies.html)
 
