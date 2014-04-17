@@ -2,13 +2,13 @@
     "name": "xlist",
     "comName":"Xlist",
     "version": "1.0",
-    "desc": "",
+    "desc": "无尽列表组件",
     "tag":"kissy-mini,kissy-mini",
     "githubName":"382850581@qq.com",
     "author": {
         "name": "伯才",
         "email": "xiaoqi.huxq@alibaba-inc.com",
-        "page": ""
+        "page": "github.com/huxiaoqi567/"
     },
 	"flexComboPort":"80",
 	"reserveServerPort":"9000",

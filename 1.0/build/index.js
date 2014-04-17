@@ -180,6 +180,14 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
     var clsPrefix = "ks-xlist-";
     var containerClsName = clsPrefix + "container";
     var containerClsReg = new RegExp(containerClsName);
+
+    var SCROLL_END = "scrollEnd";
+    var SCROLL = "scroll";
+    var DRAG_END = "dragEnd";
+    var DRAG_START = "dragStart";
+    var DRAG = "drag";
+
+
     function quadratic2cubicBezier(a, b) {
         return [[(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)], [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]];
     }
@@ -292,7 +300,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             var itemPool = self.itemPool;
             var itemHeight = userConfig.itemHeight;
             var height = self.height;
-            var offset = -self.getOffsetTop(container);
+            var offset = -self.getOffsetTop();
             var itemList = self.getItemObj(offset, height, self.domInfo);
             for (var i in itemList) {
                 var item = null;
@@ -313,7 +321,9 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             if (self.isScrolling) {
                 self.updateItv = setTimeout(function() {
                     self.update();
-                    self.fire("scroll")
+                    self.fire(SCROLL,{
+                        offsetTop:-offset
+                    })
                 }, 0);
 
             }
@@ -399,7 +409,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             if (!self.__boundryCheckEnabled) return;
             var container = self.$ctn[0];
             var height = self.height;
-            var pos = self.getOffsetTop(container);
+            var pos = self.getOffsetTop();
             if (pos > 0) {
                 container.style.webkitTransition = "-webkit-transform 0.4s ease-in-out 0s";
                 self.translateY(container, 0);
@@ -488,12 +498,16 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             $renderTo.on(Drag.DRAG_START, function(e) {
                 e.preventDefault();
                 if (e.changedTouches.length > 1) return;
+                startPos = self.getOffsetTop();
+                if(self.isScrolling){
+                    self.fire(SCROLL_END,{offsetTop:startPos});
+                }
                 self.isScrolling = false;
                 screenY = e.changedTouches[0].screenY;
-                startPos = self.getOffsetTop(container);
+                
                 self.translateY(container, startPos);
                 container.style.webkitTransition = "";
-                self.fire("panstart");
+                self.fire(DRAG_START);
             }).on(Drag.DRAG, function(e) {
                 e.preventDefault();
                 if (e.changedTouches.length > 1) return;
@@ -507,7 +521,8 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                 self.translateY(container, pos.toFixed(0));
                 container.style.webkitTransition = ""
                 self.isScrolling = false;
-                self.fire("pan", {});
+                self.fire(DRAG);
+                self.fire(SCROLL,{offsetTop:Number(pos.toFixed(0))})
             }).on(Drag.DRAG_END, function(e) {
                 dragEndHandler(e)
             })
@@ -515,13 +530,18 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             function dragEndHandler(e) {
                 var v = e.velocityY;
                 self.velocityY = v;
+                self.fire(DRAG_END, {
+                    velocityY: e.velocityY
+                })
                 if(Math.abs(v) < 0.5){
-                    self.fire("panEnd");
+                    self.fire(SCROLL_END, {
+                        offsetTop:self.getOffsetTop()
+                    })
                     self.boundryCheck();
                     return;
                 }
                 var height = self.height;
-                var s0 = self.getOffsetTop(container);
+                var s0 = self.getOffsetTop();
                 var maxSpeed = userConfig.maxSpeed > 0 && userConfig.maxSpeed < 6 ? userConfig.maxSpeed : 3;
                 if (v > maxSpeed) {
                     v = maxSpeed;
@@ -532,14 +552,12 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
 
                 self.direction = e.velocityY < 0 ? "up" : "down";
 
-                self.fire("flick", {
-                    velocityY: e.velocityY
-                })
+                
 
                 if (s0 > 0 || s0 < height - self.containerHeight) {
                     var a = 0.08 * (v / Math.abs(v));
                     var t = v / a;
-                    var s0 = self.getOffsetTop(container);
+                    var s0 = self.getOffsetTop();
                     var s = s0 + t * v / 2;
                     container.style.webkitTransition = "-webkit-transform " + t.toFixed(0) + "ms cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ") 0s";
                     self.translateY(container, s.toFixed(0));
@@ -574,13 +592,12 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
 
             function transitionEndHandler(e) {
                 if (containerClsReg.test(e.target.className)) {
-                    self.fire("scrollEnd");
                     self.isScrolling = false;
                     if (_v) {
                         var v = _v;
                         var a = 0.04 * (v / Math.abs(v));
                         var t = v / a;
-                        var s0 = self.getOffsetTop(container);
+                        var s0 = self.getOffsetTop();
                         var s = s0 + t * v / 2;
                         container.style.webkitTransition = "-webkit-transform " + t.toFixed(0) + "ms cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ") 0s";
                         self.translateY(container, s.toFixed(0));
@@ -588,9 +605,14 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                     } else {
                         self.boundryCheck();
                     }
+                    self.fire(SCROLL_END,{offsetTop:self.getOffsetTop()});
                 }
             }
             container.addEventListener("webkitTransitionEnd", transitionEndHandler, false);
+        }
+    },{
+        ATTRS:{
+
         }
     })
 
