@@ -1,0 +1,17 @@
+{
+    "name": "xlist",
+    "comName":"Xlist",
+    "version": "1.0",
+    "desc": "",
+    "tag":"kissy-mini,kissy-mini",
+    "githubName":"382850581@qq.com",
+    "author": {
+        "name": "伯才",
+        "email": "xiaoqi.huxq@alibaba-inc.com",
+        "page": ""
+    },
+	"flexComboPort":"80",
+	"reserveServerPort":"9000",
+    "type": "kissy-gallery",
+    "type-url": "http://gallery.kissyui.com/guide"
+}
