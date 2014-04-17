@@ -68,7 +68,6 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 if (i in stickies) {
                     ignoreUsed++;
                     height = stickies[i]['height'];
-                    //榛樿鏃犻渶鍥炴敹鐨勯粡浣忓尯鍩�
                     item.type = stickies[i]['type'] || 2;
                     item.template = stickies[i]['template'] || "";
                 } else {
@@ -89,30 +88,18 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
         getItemObj: function(offsetTop, height, data) {
             var self = this;
             var velocityY = self.velocityY || 0;
-            velocityY = Math.floor(velocityY);
             var height = self.height;
             var userConfig = self.userConfig;
             var itemHeight = self.userConfig.itemHeight;
             var maxBufferedNum = userConfig.maxBufferedNum || Math.ceil(self.height / itemHeight);
-            var posBottom = offsetTop + height + itemHeight;
-            var posTop = offsetTop - itemHeight;
-            if (velocityY < 0) {
-                posBottom = offsetTop + height + maxBufferedNum * itemHeight;
-            }
-            if (velocityY > 0) {
-                posTop = offsetTop - maxBufferedNum * itemHeight;
-            }
-
-            if (posBottom > self.containerHeight) {
-                posBottom = self.containerHeight;
-            }
+            var posTop = offsetTop - maxBufferedNum * itemHeight;
             if (posTop < 0) {
                 posTop = 0;
             }
             var tmp = {}, item;
-            for (var i in data) {
+            for (var i = 0,len = data.length;i<len;i++) {
                 item = data[i];
-                if (item['top'] >= posTop && item['top'] <= posBottom) {
+                if (item['top'] >= posTop && item['top'] <= posTop + 2 * maxBufferedNum * itemHeight + height) {
                     tmp[i] = item
                 }
             }
@@ -127,7 +114,6 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             }
         },
         update: function() {
-            // console.log("update")
             var self = this;
             var userConfig = self.userConfig;
             var container = self.$ctn[0];
@@ -439,7 +425,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
     return XList
 
 }, {
-    requires: ["node", "event", "base", "gallery/template/1.0/", "./drag","./log"]
+    requires: ["node", "event", "base", "gallery/template/1.0/", "./drag"]
 })
 
 

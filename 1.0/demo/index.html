@@ -46,7 +46,7 @@ S.use('node,gallery/xlist/1.0/index', function(S,Node, XList) {
     var $ = S.all
     var data = (function() {
         var tmp = [];
-        for (var i = 0; i < 10000; i++) {
+        for (var i = 0; i < 1000; i++) {
             tmp.push({
                 num: i
             })
@@ -56,7 +56,6 @@ S.use('node,gallery/xlist/1.0/index', function(S,Node, XList) {
     var list = new XList({
         renderTo: "#J_List",
         data: data,
-        // maxBufferedNum:10,
         template: '<div class="item"><h2>Xlist的demo {{num}}</h2></div>',
         itemHeight: 100 //行高
     });

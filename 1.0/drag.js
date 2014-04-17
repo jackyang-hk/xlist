@@ -53,10 +53,6 @@ KISSY.add(function(S,Node) {
 		$(e.target).fire(DRAG,e);
 	}
 
-	function touchCancelHandler(e) {
-		conosle.log("cancel")
-	}
-
 	function touchEndHandler(e) {
 		var flickStartIndex = 0,
 			flickStartYIndex = 0,
