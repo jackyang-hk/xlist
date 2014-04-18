@@ -8,11 +8,9 @@ Xlist是基于html5的无尽下拉列表实现
 
 
 
-[默认](../demo/index.html)
+[index.html](../demo/index.html)
 
-[附着物](../demo/stickies.html)
-
-[上拉分页](../demo/pagination.html)
+[pagination.html](../demo/pagination.html)
 
 ## 初始化组件
 		
