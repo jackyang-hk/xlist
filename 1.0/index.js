@@ -182,6 +182,8 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                     item.element.style.height = itemList[i]['height'] + "px";
                     self.translateY(item.element, itemList[i]['top']);
                     self.visibleIndex[i] = item;
+                    self.update();
+                    break;
                 }
             }
             for (var i in self.visibleIndex) {
