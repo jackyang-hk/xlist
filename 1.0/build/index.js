@@ -120,7 +120,7 @@ KISSY.add('gallery/xlist/1.0/drag',function(S,Node) {
 		var flickStartRecord = record[flickStartIndex];
 		//移除前面没有用的点
 		e.touch.record = e.touch.record.splice(flickStartIndex - 1);
-		var velocityObj = getAverageSpeed(e.touch.record);
+		var velocityObj = getSpeed(e.touch.record);
 		e.velocityX = Math.abs(velocityObj.velocityX) > MAX_SPEED ? velocityObj.velocityX / Math.abs(velocityObj.velocityX) * MAX_SPEED : velocityObj.velocityX;
 		e.velocityY = Math.abs(velocityObj.velocityY) > MAX_SPEED ? velocityObj.velocityY / Math.abs(velocityObj.velocityY) * MAX_SPEED : velocityObj.velocityY;
 		e.velocity = Math.sqrt(Math.pow(e.velocityX, 2) + Math.pow(e.velocityY, 2))
@@ -131,7 +131,7 @@ KISSY.add('gallery/xlist/1.0/drag',function(S,Node) {
 		return Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2));
 	}
 
-	function getAverageSpeed(record) {
+	function getSpeed(record) {
 		var velocityY = 0;
 		var velocityX = 0;
 		var len = record.length;
@@ -141,9 +141,10 @@ KISSY.add('gallery/xlist/1.0/drag',function(S,Node) {
 		}
 		velocityY /= len;
 		velocityX /= len;
+		//手指反弹的误差处理
 		return {
-			velocityY: velocityY,
-			velocityX: velocityX
+			velocityY: Math.abs(record[len - 1]['velocityY']) > MIN_SPEED ? velocityY : 0,
+			velocityX: Math.abs(record[len - 1]['velocityX']) > MIN_SPEED ? velocityX : 0
 		}
 	}
 
@@ -180,14 +181,14 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
     var clsPrefix,
         containerClsName,
         containerClsReg;
-
-
+    //event names
     var SCROLL_END = "scrollEnd";
     var SCROLL = "scroll";
     var DRAG_END = "dragEnd";
     var DRAG_START = "dragStart";
     var DRAG = "drag";
-    var SROLL_ACCELERATION = 0.002;
+    //constant acceleration for scrolling
+    var SROLL_ACCELERATION = 0.004;
 
     //boundry checked bounce effect
     var BOUNDRY_CHECK_DURATION = 0.4;
@@ -232,7 +233,20 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
         ];
     }
 
-
+    /**
+        * constructor for XList
+        * @param renderTo {String|KISSY.Node} root element
+        * @param data {Array} data for initial
+        * @param autoRender {Boolean} choose if render automatically
+        * @param itemHeight {Number} height for each row
+        * @param translate3D {Boolean} choose if use 3D translate to animate
+        * @param clsPrefix {String} prefix for className
+        * @param stickies {Object} sticky element with three types : 
+            1.normal item 
+            2.sticky with no dom-recycling 
+            3.sticky with dom-recycling
+        * @param SROLL_ACCELERATION {Float} acceleration for scrolling
+        **/
     var XList = Base.extend({
         initializer: function() {
             var self = this;
@@ -245,31 +259,50 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             self.$renderTo = $(userConfig.renderTo).css({
                 overflowY: "hidden"
             });
+
             clsPrefix = userConfig.clsPrefix || "ks-xlist-";
+
+            SROLL_ACCELERATION = userConfig.SROLL_ACCELERATION || SROLL_ACCELERATION;
+
             containerClsName = clsPrefix + "container";
+
             containerClsReg = new RegExp(containerClsName);
+
             var height = self.height = userConfig.height || self.$renderTo.height();
+
             self.visibleIndex = {};
+
             self.__renderIdRecord = {};
+
             self.__boundryCheckEnabled = true;
+
             self.initItemPool();
+
             userConfig.autoRender && self.render();
+
         },
+        //translate a element vertically
         translateY: function(el, y) {
             var self = this;
             el.style[transform] = self.userConfig.translate3D ? "translate3D(0," + y + "px,0)" : "translateY(" + y + "px)";
             return;
         },
+        //remove data
         removeData: function() {
             var self = this;
             self.userConfig.data = [];
         },
+        //append new data
         setData: function(data) {
             var self = this;
             for (var i = 0, len = data.length; i < len; i++) {
                 self.userConfig.data.push(data[i]);
             }
         },
+         /**
+        * get all element posInfo such as top,height,template,html
+        * @return {Array} 
+        **/
         getDomInfo: function() {
             var self = this;
             var userConfig = self.userConfig;
@@ -309,6 +342,10 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             self.domInfo = domInfo;
             return domInfo;
         },
+        /**
+        * get datas in visible area
+        * @return {Object} 
+        **/
         getItemObj: function(offsetTop, height, data) {
             var self = this;
             var velocityY = self.velocityY || 0;
@@ -329,6 +366,10 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             }
             return tmp
         },
+        /**
+        * get container offsetTop
+        * @return offsetTop{Number} 
+        **/
         getOffsetTop: function() {
             var self = this;
             if (self.$ctn && self.$ctn[0]) {
@@ -337,6 +378,9 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                 return 0;
             }
         },
+        /**
+        * async update data and render doms inside of view 
+        **/
         update: function() {
             var self = this;
             var userConfig = self.userConfig;
@@ -371,10 +415,9 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                         offsetTop: -offset
                     })
                 }, 0);
-
             }
-
         },
+        //clear doms
         clear: function() {
             var self = this;
             for (var i in self.__renderDomRecord) {
@@ -383,12 +426,22 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             self.visibleIndex = {}
             self.__renderIdRecord = {}
         },
+        /**
+        * judge object has key
+        * @example hasKey({a:1},"a") => true 
+        * @return {Boolean}
+        **/
         hasKey: function(obj, key) {
             for (var i in obj) {
                 if (i === key) return true;
             }
             return false;
         },
+        /**
+        * init element-pool for recyclely used
+        * @param getItem {Function} get element from pool
+        * @param setItem {Function} recycle element into pool
+        **/
         initItemPool: function() {
             var self = this;
             self.__renderDomRecord = [];
@@ -428,15 +481,27 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                 }
             }
         },
+        /**
+        * enable the switch for boundry back bounce
+        **/
         enableBoundryCheck: function() {
             var self = this;
             self.__boundryCheckEnabled = true;
             self._boundryCheck();
         },
+         /**
+        * disable the switch for boundry back bounce
+        **/
         disableBoundryCheck: function() {
             var self = this;
             self.__boundryCheckEnabled = false;
         },
+        /**
+        * scroll the root element with an animate
+        * @param offset {Number} scrollTop
+        * @param duration {Number} duration for animte
+        * @param easing {Number} easing functio for animate : ease-in | ease-in-out | ease | bezier
+        **/
         scrollTo: function(offset, duration, easing) {
             var self = this;
             var duration = duration || 0;
@@ -449,6 +514,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             self.isScrolling = true;
             self.update();
         },
+        //boundry back bounce
         _boundryCheck: function() {
             var self = this;
             if (!self.__boundryCheckEnabled) return;
@@ -485,12 +551,14 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             self.$ctn = $(container);
             self.__isContainerCreated = true;
         },
+        //update height & render
         sync: function() {
             var self = this;
             var userConfig = self.userConfig;
             var height = self.height = userConfig.height || self.$renderTo.height();
             self.render();
         },
+        //render
         render: function() {
             var self = this;
             self.getDomInfo();
@@ -506,6 +574,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                 self.containerHeight = self.height;
             }
             for (var i = 0, l = self.domInfo.length; i < l; i++) {
+                //render stickies where type = 2 once
                 if (self.domInfo[i]['type'] == 2 && !self.__renderIdRecord[self.domInfo[i]['row']]) {
                     var itemNode = document.createElement("div");
                     itemNode.style.top = 0;
@@ -522,6 +591,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             self._bindEvt();
             self.update();
         },
+        //event bind
         _bindEvt: function() {
             var self = this;
             if (self.__isEvtBind) return;
@@ -592,9 +662,8 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                 if (v < -maxSpeed) {
                     v = -maxSpeed;
                 }
-
+                //judge the direction
                 self.direction = e.velocityY < 0 ? "up" : "down";
-
                 if (s0 > 0 || s0 < height - self.containerHeight) {
                     var a = BOUNDRY_CHECK_ACCELERATION * (v / Math.abs(v));
                     var t = v / a;
@@ -603,20 +672,22 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                     self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
                     return;
                 }
-
                 var a = SROLL_ACCELERATION * (v / Math.abs(v));
                 var t = v / a;
                 var s = s0 + t * v / 2;
+                //over top boundry check bounce
                 if (s > 0) {
                     var _s = 0 - s0;
                     var _t = (v - Math.sqrt(-2 * a * _s + v * v)) / a;
                     self.scrollTo(0, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
                     _v = v - a * _t;
+                //over bottom boundry check bounce
                 } else if (s < height - self.containerHeight) {
                     var _s = (height - self.containerHeight) - s0;
                     var _t = (v + Math.sqrt(-2 * a * _s + v * v)) / a;
                     self.scrollTo(self.containerHeight - height, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
                     _v = v - a * _t;
+                // normal
                 } else {
                     self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
                 }
@@ -628,6 +699,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             }
 
             function transitionEndHandler(e) {
+                //stoppropagation inside root element
                 if (containerClsReg.test(e.target.className)) {
                     self.isScrolling = false;
                     if (_v) {
@@ -641,18 +713,17 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                     } else {
                         self._boundryCheck();
                     }
+                    //trigger scrollEnd function after scrolling
                     self.fire(SCROLL_END, {
                         offsetTop: self.getOffsetTop()
                     });
                 }
             }
 
+            //callback
             container.addEventListener("transitionend", transitionEndHandler, false);
-
             container.addEventListener("webkitTransitionEnd", transitionEndHandler, false);
-
             container.addEventListener("oTransitionEnd", transitionEndHandler, false);
-
             container.addEventListener("MSTransitionEnd", transitionEndHandler, false);
 
         }

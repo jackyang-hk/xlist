@@ -165,14 +165,15 @@ S.use('node,ajax,gallery/xlist/1.0/index,', function(S,Node,Ajax, XList) {
                 }
             })
     }
-
+    var timeout;
     //图片懒加载
      function showImg(){
-        // setTimeout(function(){
+        clearTimeout(timeout)
+        timeout = setTimeout(function(){
         $(".J_IMG",$("#J_List")).each(function(){
-            // $(this).attr("src",$(this).attr("data-src"))
+            $(this).attr("src",$(this).attr("data-src"))
         })
-         // },200)
+         },200)
        
     }
 

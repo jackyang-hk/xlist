@@ -113,7 +113,7 @@ KISSY.add(function(S,Node) {
 		var flickStartRecord = record[flickStartIndex];
 		//移除前面没有用的点
 		e.touch.record = e.touch.record.splice(flickStartIndex - 1);
-		var velocityObj = getAverageSpeed(e.touch.record);
+		var velocityObj = getSpeed(e.touch.record);
 		e.velocityX = Math.abs(velocityObj.velocityX) > MAX_SPEED ? velocityObj.velocityX / Math.abs(velocityObj.velocityX) * MAX_SPEED : velocityObj.velocityX;
 		e.velocityY = Math.abs(velocityObj.velocityY) > MAX_SPEED ? velocityObj.velocityY / Math.abs(velocityObj.velocityY) * MAX_SPEED : velocityObj.velocityY;
 		e.velocity = Math.sqrt(Math.pow(e.velocityX, 2) + Math.pow(e.velocityY, 2))
@@ -124,7 +124,7 @@ KISSY.add(function(S,Node) {
 		return Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2));
 	}
 
-	function getAverageSpeed(record) {
+	function getSpeed(record) {
 		var velocityY = 0;
 		var velocityX = 0;
 		var len = record.length;
@@ -134,9 +134,10 @@ KISSY.add(function(S,Node) {
 		}
 		velocityY /= len;
 		velocityX /= len;
+		//手指反弹的误差处理
 		return {
-			velocityY: velocityY,
-			velocityX: velocityX
+			velocityY: Math.abs(record[len - 1]['velocityY']) > MIN_SPEED ? velocityY : 0,
+			velocityX: Math.abs(record[len - 1]['velocityX']) > MIN_SPEED ? velocityX : 0
 		}
 	}
 
