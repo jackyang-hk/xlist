@@ -54,11 +54,6 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
 
 
     function quadratic2cubicBezier(a, b) {
-        console.log("a:"+a+" b:"+b)
-        console.log([
-        [(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)], 
-        [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
-        ])
         return [
         [(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)], 
         [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
@@ -420,7 +415,6 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 self.direction = e.velocityY < 0 ? "up" : "down";
                 
                 if (s0 > 0 || s0 < height - self.containerHeight) {
-                    console.log("xxx")
                     var a = BOUNDRY_CHECK_ACCELERATION * (v / Math.abs(v));
                     var t = v / a;
                     var s0 = self.getOffsetTop();
