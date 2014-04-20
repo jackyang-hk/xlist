@@ -1,13 +1,14 @@
 /**
- * @fileoverview 
+ * @fileoverview
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @module xlist
  **/
 KISSY.add(function(S, N, E, Base, Template, Drag) {
     var $ = S.all;
-    var clsPrefix = "ks-xlist-";
-    var containerClsName = clsPrefix + "container";
-    var containerClsReg = new RegExp(containerClsName);
+    var clsPrefix,
+        containerClsName,
+        containerClsReg;
+
 
     var SCROLL_END = "scrollEnd";
     var SCROLL = "scroll";
@@ -24,16 +25,16 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
     /*
         vendors
         @example webkit|moz|ms|O 
-    */   
-    var vendor =  (function () {
+    */
+    var vendor = (function() {
         var el = document.createElement('div').style;
         var vendors = ['t', 'webkitT', 'MozT', 'msT', 'OT'],
             transform,
             i = 0,
             l = vendors.length;
-        for ( ; i < l; i++ ) {
+        for (; i < l; i++) {
             transform = vendors[i] + 'ransform';
-            if ( transform in el ) return vendors[i].substr(0, vendors[i].length-1);
+            if (transform in el) return vendors[i].substr(0, vendors[i].length - 1);
         }
         return false;
     })();
@@ -41,25 +42,24 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
     //transform
     var transform = prefixStyle("transform");
     //transition webkitTransition MozTransition OTransition msTtransition
-    var transition = prefixStyle("transition"); 
+    var transition = prefixStyle("transition");
     /**
-    *  attrs with vendor
-    *  @return { String } 
-    **/
-    function prefixStyle (style) {
-        if ( vendor === false ) return false;
-        if ( vendor === '' ) return style;
+     *  attrs with vendor
+     *  @return { String }
+     **/
+    function prefixStyle(style) {
+        if (vendor === false) return false;
+        if (vendor === '') return style;
         return vendor + style.charAt(0).toUpperCase() + style.substr(1);
     }
 
 
     function quadratic2cubicBezier(a, b) {
         return [
-        [(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)], 
-        [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
+            [(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)], [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
         ];
     }
-   
+
 
     var XList = Base.extend({
         initializer: function() {
@@ -73,6 +73,9 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             self.$renderTo = $(userConfig.renderTo).css({
                 overflowY: "hidden"
             });
+            clsPrefix = userConfig.clsPrefix || "ks-xlist-";
+            containerClsName = clsPrefix + "container";
+            containerClsReg = new RegExp(containerClsName);
             var height = self.height = userConfig.height || self.$renderTo.height();
             self.visibleIndex = {};
             self.__renderIdRecord = {};
@@ -146,7 +149,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 posTop = 0;
             }
             var tmp = {}, item;
-            for (var i = 0,len = data.length;i<len;i++) {
+            for (var i = 0, len = data.length; i < len; i++) {
                 item = data[i];
                 if (item['top'] >= posTop && item['top'] <= posTop + 2 * maxBufferedNum * itemHeight + height) {
                     tmp[i] = item
@@ -190,8 +193,8 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             if (self.isScrolling) {
                 self.updateItv = setTimeout(function() {
                     self.update();
-                    self.fire(SCROLL,{
-                        offsetTop:-offset
+                    self.fire(SCROLL, {
+                        offsetTop: -offset
                     })
                 }, 0);
 
@@ -260,7 +263,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             var self = this;
             self.__boundryCheckEnabled = false;
         },
-        scrollTo: function(offset, duration,easing) {
+        scrollTo: function(offset, duration, easing) {
             var self = this;
             var duration = duration || 0;
             if (duration > 1) {
@@ -268,7 +271,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             }
             var container = self.$ctn[0];
             self.translateY(container, (-offset).toFixed(0));
-            container.style[transition] = ["-",vendor,"-transform ",duration,"s ",easing," 0s"].join("");
+            container.style[transition] = ["-", vendor, "-transform ", duration, "s ", easing, " 0s"].join("");
             self.isScrolling = true;
             self.update();
         },
@@ -278,10 +281,10 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             var pos = self.getOffsetTop();
             var height = self.height;
             if (pos > 0) {
-                self.scrollTo(0,BOUNDRY_CHECK_DURATION,BOUNDRY_CHECK_EASING);
+                self.scrollTo(0, BOUNDRY_CHECK_DURATION, BOUNDRY_CHECK_EASING);
             }
             if (pos < height - self.containerHeight) {
-                self.scrollTo(self.containerHeight - height,BOUNDRY_CHECK_DURATION,BOUNDRY_CHECK_EASING);
+                self.scrollTo(self.containerHeight - height, BOUNDRY_CHECK_DURATION, BOUNDRY_CHECK_EASING);
             }
             self.update();
         },
@@ -362,8 +365,10 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 e.preventDefault();
                 if (e.changedTouches.length > 1) return;
                 startPos = self.getOffsetTop();
-                if(self.isScrolling){
-                    self.fire(SCROLL_END,{offsetTop:startPos});
+                if (self.isScrolling) {
+                    self.fire(SCROLL_END, {
+                        offsetTop: startPos
+                    });
                 }
                 self.isScrolling = false;
                 screenY = e.changedTouches[0].screenY;
@@ -384,7 +389,9 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 container.style[transition] = "";
                 self.isScrolling = false;
                 self.fire(DRAG);
-                self.fire(SCROLL,{offsetTop:Number(pos.toFixed(0))})
+                self.fire(SCROLL, {
+                    offsetTop: Number(pos.toFixed(0))
+                })
             }).on(Drag.DRAG_END, function(e) {
                 dragEndHandler(e)
             })
@@ -395,9 +402,9 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 self.fire(DRAG_END, {
                     velocityY: e.velocityY
                 })
-                if(Math.abs(v) < 0.5){
+                if (Math.abs(v) < 0.5) {
                     self.fire(SCROLL_END, {
-                        offsetTop:self.getOffsetTop()
+                        offsetTop: self.getOffsetTop()
                     })
                     self._boundryCheck();
                     return;
@@ -413,13 +420,13 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 }
 
                 self.direction = e.velocityY < 0 ? "up" : "down";
-                
+
                 if (s0 > 0 || s0 < height - self.containerHeight) {
                     var a = BOUNDRY_CHECK_ACCELERATION * (v / Math.abs(v));
                     var t = v / a;
                     var s0 = self.getOffsetTop();
                     var s = s0 + t * v / 2;
-                    self.scrollTo(-s,t,"cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
+                    self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
                     return;
                 }
 
@@ -429,21 +436,21 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 if (s > 0) {
                     var _s = 0 - s0;
                     var _t = (v - Math.sqrt(-2 * a * _s + v * v)) / a;
-                    self.scrollTo(0,_t,"cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
+                    self.scrollTo(0, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
                     _v = v - a * _t;
                 } else if (s < height - self.containerHeight) {
                     var _s = (height - self.containerHeight) - s0;
                     var _t = (v + Math.sqrt(-2 * a * _s + v * v)) / a;
-                    self.scrollTo(self.containerHeight - height,_t,"cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
+                    self.scrollTo(self.containerHeight - height, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
                     _v = v - a * _t;
                 } else {
-                     self.scrollTo(-s,t,"cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
+                    self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
                 }
                 self.isScrolling = true;
-                setTimeout(function(){
+                setTimeout(function() {
                     self.update();
-                },10)
-                
+                }, 10)
+
             }
 
             function transitionEndHandler(e) {
@@ -455,12 +462,14 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                         var t = v / a;
                         var s0 = self.getOffsetTop();
                         var s = s0 + t * v / 2;
-                        self.scrollTo(-s,t,"cubic-bezier(" + quadratic2cubicBezier(-t, 0)+")");
+                        self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
                         _v = 0;
                     } else {
                         self._boundryCheck();
                     }
-                    self.fire(SCROLL_END,{offsetTop:self.getOffsetTop()});
+                    self.fire(SCROLL_END, {
+                        offsetTop: self.getOffsetTop()
+                    });
                 }
             }
 
@@ -473,8 +482,8 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             container.addEventListener("MSTransitionEnd", transitionEndHandler, false);
 
         }
-    },{
-        ATTRS:{
+    }, {
+        ATTRS: {
 
         }
     })
@@ -484,6 +493,3 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
 }, {
     requires: ["node", "event", "base", "gallery/template/1.0/", "./drag"]
 })
-
-
-
