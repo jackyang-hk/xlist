@@ -186,11 +186,57 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
     var DRAG_END = "dragEnd";
     var DRAG_START = "dragStart";
     var DRAG = "drag";
+    var SROLL_ACCELERATION = 0.002;
+
+    //boundry checked bounce effect
+    var BOUNDRY_CHECK_DURATION = 0.4;
+    var BOUNDRY_CHECK_EASING = "ease-in-out";
+    var BOUNDRY_CHECK_ACCELERATION = 0.1;
+
+    /*
+        vendors
+        @example webkit|moz|ms|O 
+    */   
+    var vendor =  (function () {
+        var el = document.createElement('div').style;
+        var vendors = ['t', 'webkitT', 'MozT', 'msT', 'OT'],
+            transform,
+            i = 0,
+            l = vendors.length;
+        for ( ; i < l; i++ ) {
+            transform = vendors[i] + 'ransform';
+            if ( transform in el ) return vendors[i].substr(0, vendors[i].length-1);
+        }
+        return false;
+    })();
+
+    //transform
+    var transform = prefixStyle("transform");
+    //transition webkitTransition MozTransition OTransition msTtransition
+    var transition = prefixStyle("transition"); 
+    /**
+    *  attrs with vendor
+    *  @return { String } 
+    **/
+    function prefixStyle (style) {
+        if ( vendor === false ) return false;
+        if ( vendor === '' ) return style;
+        return vendor + style.charAt(0).toUpperCase() + style.substr(1);
+    }
 
 
     function quadratic2cubicBezier(a, b) {
-        return [[(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)], [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]];
+        console.log("a:"+a+" b:"+b)
+        console.log([
+        [(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)], 
+        [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
+        ])
+        return [
+        [(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)], 
+        [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
+        ];
     }
+   
 
     var XList = Base.extend({
         initializer: function() {
@@ -213,7 +259,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
         },
         translateY: function(el, y) {
             var self = this;
-            el.style.webkitTransform = self.userConfig.translate3D ? "translate3D(0," + y + "px,0)" : "translateY(" + y + "px)";
+            el.style[transform] = self.userConfig.translate3D ? "translate3D(0," + y + "px,0)" : "translateY(" + y + "px)";
             return;
         },
         removeData: function() {
@@ -288,7 +334,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
         getOffsetTop: function() {
             var self = this;
             if (self.$ctn && self.$ctn[0]) {
-                return Number(window.getComputedStyle(self.$ctn[0]).webkitTransform.match(/[-\d]+/g)[5])
+                return Number(window.getComputedStyle(self.$ctn[0])[transform].match(/[-\d]+/g)[5])
             } else {
                 return 0;
             }
@@ -345,7 +391,6 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
         },
         initItemPool: function() {
             var self = this;
-            //绌�
             self.__renderDomRecord = [];
             var userConfig = self.userConfig;
             var itemPool = self.itemPool = {
@@ -386,13 +431,13 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
         enableBoundryCheck: function() {
             var self = this;
             self.__boundryCheckEnabled = true;
-            self.boundryCheck();
+            self._boundrycheck();
         },
         disableBoundryCheck: function() {
             var self = this;
             self.__boundryCheckEnabled = false;
         },
-        scrollTo: function(offset, duration) {
+        scrollTo: function(offset, duration,easing) {
             var self = this;
             var duration = duration || 0;
             if (duration > 1) {
@@ -400,25 +445,20 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             }
             var container = self.$ctn[0];
             self.translateY(container, (-offset).toFixed(0));
-            container.style.webkitTransition = "-webkit-transform " + duration + "s ease-in-out 0s";
+            container.style[transition] = ["-",vendor,"-transform ",duration,"s ",easing," 0s"].join("");
             self.isScrolling = true;
             self.update();
         },
-        boundryCheck: function() {
+        _boundryCheck: function() {
             var self = this;
             if (!self.__boundryCheckEnabled) return;
-            var container = self.$ctn[0];
-            var height = self.height;
             var pos = self.getOffsetTop();
+            var height = self.height;
             if (pos > 0) {
-                container.style.webkitTransition = "-webkit-transform 0.4s ease-in-out 0s";
-                self.translateY(container, 0);
-                self.isScrolling = true;
+                self.scrollTo(0,BOUNDRY_CHECK_DURATION,BOUNDRY_CHECK_EASING);
             }
             if (pos < height - self.containerHeight) {
-                container.style.webkitTransition = "-webkit-transform 0.4s ease-in-out 0s";
-                self.translateY(container, height - self.containerHeight);
-                self.isScrolling = true;
+                self.scrollTo(self.containerHeight - height,BOUNDRY_CHECK_DURATION,BOUNDRY_CHECK_EASING);
             }
             self.update();
         },
@@ -427,6 +467,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             if (self.__isContainerCreated) return;
             var container;
             var $renderTo = self.$renderTo;
+            //support sync rendering
             if ($("." + containerClsName, self.$renderTo)[0]) {
                 container = $("." + containerClsName, self.$renderTo)[0];
             } else {
@@ -434,14 +475,13 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                 container.className = containerClsName;
                 $renderTo[0].appendChild(container);
             }
-
-            container.style.background = "white";
+            container.style.background = "#fff";
             container.style.width = "100%";
             container.style.position = "relative";
             container.style['z-index'] = 1;
+            container.style[prefixStyle("backfaceVisibility")] = "hidden";
+            container.style[prefixStyle("perspective")] = 0;
             self.translateY(container, 0);
-            container.style.webkitBackfaceVisibility = "hidden";
-            container.style.webkitPerspective = 1000;
             self.$ctn = $(container);
             self.__isContainerCreated = true;
         },
@@ -504,9 +544,8 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                 }
                 self.isScrolling = false;
                 screenY = e.changedTouches[0].screenY;
-                
                 self.translateY(container, startPos);
-                container.style.webkitTransition = "";
+                container.style[transition] = "";
                 self.fire(DRAG_START);
             }).on(Drag.DRAG, function(e) {
                 e.preventDefault();
@@ -519,7 +558,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                     pos = pos + (height - self.containerHeight - pos) / 2;
                 }
                 self.translateY(container, pos.toFixed(0));
-                container.style.webkitTransition = ""
+                container.style[transition] = "";
                 self.isScrolling = false;
                 self.fire(DRAG);
                 self.fire(SCROLL,{offsetTop:Number(pos.toFixed(0))})
@@ -537,7 +576,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                     self.fire(SCROLL_END, {
                         offsetTop:self.getOffsetTop()
                     })
-                    self.boundryCheck();
+                    self._boundrycheck();
                     return;
                 }
                 var height = self.height;
@@ -551,37 +590,32 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                 }
 
                 self.direction = e.velocityY < 0 ? "up" : "down";
-
                 
-
                 if (s0 > 0 || s0 < height - self.containerHeight) {
-                    var a = 0.08 * (v / Math.abs(v));
+                    console.log("xxx")
+                    var a = BOUNDRY_CHECK_ACCELERATION * (v / Math.abs(v));
                     var t = v / a;
                     var s0 = self.getOffsetTop();
                     var s = s0 + t * v / 2;
-                    container.style.webkitTransition = "-webkit-transform " + t.toFixed(0) + "ms cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ") 0s";
-                    self.translateY(container, s.toFixed(0));
+                    self.scrollTo(-s,t,"cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
                     return;
                 }
 
-                var a = 0.002 * (v / Math.abs(v));
+                var a = SROLL_ACCELERATION * (v / Math.abs(v));
                 var t = v / a;
                 var s = s0 + t * v / 2;
                 if (s > 0) {
                     var _s = 0 - s0;
                     var _t = (v - Math.sqrt(-2 * a * _s + v * v)) / a;
-                    container.style.webkitTransition = "-webkit-transform " + _t.toFixed(0) + "ms cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ") 0s";
-                    self.translateY(container, 0);
+                    self.scrollTo(0,_t,"cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
                     _v = v - a * _t;
                 } else if (s < height - self.containerHeight) {
                     var _s = (height - self.containerHeight) - s0;
                     var _t = (v + Math.sqrt(-2 * a * _s + v * v)) / a;
-                    container.style.webkitTransition = "-webkit-transform " + _t.toFixed(0) + "ms cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ") 0s";
-                    self.translateY(container, (height - self.containerHeight).toFixed(0));
+                    self.scrollTo(self.containerHeight - height,_t,"cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
                     _v = v - a * _t;
                 } else {
-                    container.style.webkitTransition = "-webkit-transform " + t.toFixed(0) + "ms cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ") 0s";
-                    self.translateY(container, s.toFixed(0));
+                     self.scrollTo(-s,t,"cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
                 }
                 self.isScrolling = true;
                 setTimeout(function(){
@@ -599,16 +633,23 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                         var t = v / a;
                         var s0 = self.getOffsetTop();
                         var s = s0 + t * v / 2;
-                        container.style.webkitTransition = "-webkit-transform " + t.toFixed(0) + "ms cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ") 0s";
-                        self.translateY(container, s.toFixed(0));
+                        self.scrollTo(-s,t,"cubic-bezier(" + quadratic2cubicBezier(-t, 0)+")");
                         _v = 0;
                     } else {
-                        self.boundryCheck();
+                        self._boundrycheck();
                     }
                     self.fire(SCROLL_END,{offsetTop:self.getOffsetTop()});
                 }
             }
+
+            container.addEventListener("transitionend", transitionEndHandler, false);
+
             container.addEventListener("webkitTransitionEnd", transitionEndHandler, false);
+
+            container.addEventListener("oTransitionEnd", transitionEndHandler, false);
+
+            container.addEventListener("MSTransitionEnd", transitionEndHandler, false);
+
         }
     },{
         ATTRS:{
