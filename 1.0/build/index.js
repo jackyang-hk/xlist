@@ -426,7 +426,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
         enableBoundryCheck: function() {
             var self = this;
             self.__boundryCheckEnabled = true;
-            self._boundrycheck();
+            self._boundryCheck();
         },
         disableBoundryCheck: function() {
             var self = this;
@@ -571,7 +571,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                     self.fire(SCROLL_END, {
                         offsetTop:self.getOffsetTop()
                     })
-                    self._boundrycheck();
+                    self._boundryCheck();
                     return;
                 }
                 var height = self.height;
@@ -630,7 +630,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                         self.scrollTo(-s,t,"cubic-bezier(" + quadratic2cubicBezier(-t, 0)+")");
                         _v = 0;
                     } else {
-                        self._boundrycheck();
+                        self._boundryCheck();
                     }
                     self.fire(SCROLL_END,{offsetTop:self.getOffsetTop()});
                 }
