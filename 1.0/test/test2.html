@@ -20,6 +20,7 @@
         width: 100%;
         position: absolute;
         overflow-y:hidden;
+        margin-top: 45px;
     }
     .item-container{
         position: absolute;
@@ -38,7 +39,9 @@
     .item-list ul li .item-pic{
         -webkit-box-shadow:none;
     }
-
+    .loading{
+        text-align: center;
+    }
     </style>
 </head>
 <body>
@@ -130,6 +133,8 @@ S.use('node,ajax,gallery/xlist/1.0/index,', function(S,Node,Ajax, XList) {
     */
     var catchedData = {};
     var page = 1;
+    var totalPage ;
+    var pageSize = 96;
     //获取每一页的数据
     function getData(){
 
@@ -143,6 +148,7 @@ S.use('node,ajax,gallery/xlist/1.0/index,', function(S,Node,Ajax, XList) {
             return tmp;
         }
 
+
         //如果存在就不加载
         if(page && catchedData[page]) return;
          S.io({
@@ -153,13 +159,27 @@ S.use('node,ajax,gallery/xlist/1.0/index,', function(S,Node,Ajax, XList) {
                     type: 0
                 },
                 success:function(e){
+                   if($(".loading")[0]){
+                    $(".loading").hide();
+                   } 
                     if(e.itemList && e.itemList.length){
+                        totalPage = e.totalPage;
                         catchedData[page] = e.itemList;
                         list.removeData();
                         list.setData(formatData(catchedData));
+                        list.userConfig.stickies = {};
+                        if(page < totalPage){
+                            list.userConfig.stickies[page * pageSize] = {
+                                    height:100,
+                                    template:"<div class='loading'>loading...</div>"
+                            }
+                        }
                         list.sync();
                         showImg();
-                        page ++;
+                        if(page < totalPage){
+                            page ++;
+                        }
+                        
                     }
                     
                 }
@@ -183,23 +203,14 @@ S.use('node,ajax,gallery/xlist/1.0/index,', function(S,Node,Ajax, XList) {
         renderTo: "#J_List",
         autoRender:false,
         template: $("#J_Tpl").html(),
-        stickies:{
-            0:{
-                height:45
-            }
-        },
         itemHeight: 107 //行高
     });
 
     getData()
-
     list.on("scrollEnd",function(e){
          showImg();
-
-         console.log(e.offsetTop)
          if(list.height-e.offsetTop > list.containerHeight){
             //滑到底部 加载下一页数据
-            console.log("next page")
             getData()
          }
 

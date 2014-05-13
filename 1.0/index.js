@@ -14,8 +14,10 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
     var DRAG_END = "dragEnd";
     var DRAG_START = "dragStart";
     var DRAG = "drag";
+    var AFTER_RENDER = "afterRender";
+    var SYNC = "sync";
     //constant acceleration for scrolling
-    var SROLL_ACCELERATION = 0.004;
+    var SROLL_ACCELERATION = 0.0035;
 
     //boundry checked bounce effect
     var BOUNDRY_CHECK_DURATION = 0.4;
@@ -86,6 +88,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             self.$renderTo = $(userConfig.renderTo).css({
                 overflowY: "hidden"
             });
+            window.xlist = self;
 
             clsPrefix = userConfig.clsPrefix || "ks-xlist-";
 
@@ -99,7 +102,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
 
             self.visibleIndex = {};
 
-            self.__renderIdRecord = {};
+            self.__stickiesRecord = {};
 
             self.__boundryCheckEnabled = true;
 
@@ -126,10 +129,10 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 self.userConfig.data.push(data[i]);
             }
         },
-         /**
-        * get all element posInfo such as top,height,template,html
-        * @return {Array} 
-        **/
+        /**
+         * get all element posInfo such as top,height,template,html
+         * @return {Array}
+         **/
         getDomInfo: function() {
             var self = this;
             var userConfig = self.userConfig;
@@ -170,9 +173,9 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             return domInfo;
         },
         /**
-        * get datas in visible area
-        * @return {Object} 
-        **/
+         * get datas in visible area
+         * @return {Object}
+         **/
         getItemObj: function(offsetTop, height, data) {
             var self = this;
             var velocityY = self.velocityY || 0;
@@ -188,15 +191,15 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             for (var i = 0, len = data.length; i < len; i++) {
                 item = data[i];
                 if (item['top'] >= posTop && item['top'] <= posTop + 2 * maxBufferedNum * itemHeight + height) {
-                    tmp[i] = item
+                    tmp[item['row']] = item
                 }
             }
             return tmp
         },
         /**
-        * get container offsetTop
-        * @return offsetTop{Number} 
-        **/
+         * get container offsetTop
+         * @return offsetTop{Number}
+         **/
         getOffsetTop: function() {
             var self = this;
             if (self.$ctn && self.$ctn[0]) {
@@ -206,10 +209,11 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             }
         },
         /**
-        * async update data and render doms inside of view 
-        **/
+         * async update data and render doms inside of view
+         **/
         update: function() {
             var self = this;
+            clearInterval(self.updateItv)
             var userConfig = self.userConfig;
             var container = self.$ctn[0];
             var itemPool = self.itemPool;
@@ -235,6 +239,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                     delete self.visibleIndex[i];
                 }
             }
+
             if (self.isScrolling) {
                 self.updateItv = setTimeout(function() {
                     self.update();
@@ -251,27 +256,27 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 self.__renderDomRecord[i].remove()
             }
             self.visibleIndex = {}
-            self.__renderIdRecord = {}
+            self.__stickiesRecord = {}
         },
         /**
-        * judge object has key
-        * @example hasKey({a:1},"a") => true 
-        * @return {Boolean}
-        **/
+         * judge object has key
+         * @example hasKey({a:1},"a") => true
+         * @return {Boolean}
+         **/
         hasKey: function(obj, key) {
             for (var i in obj) {
-                if (i === key) return true;
+                if (i == key) return true;
             }
             return false;
         },
         /**
-        * init element-pool for recyclely used
-        * @param getItem {Function} get element from pool
-        * @param setItem {Function} recycle element into pool
-        **/
+         * init element-pool for recyclely used
+         * @param getItem {Function} get element from pool
+         * @param setItem {Function} recycle element into pool
+         **/
         initItemPool: function() {
             var self = this;
-            self.__renderDomRecord = [];
+            self.__renderDomRecord = {};
             var userConfig = self.userConfig;
             var itemPool = self.itemPool = {
                 items: [],
@@ -299,7 +304,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                         } else {
                             item.element = $(Template(itemObj.template).render(itemObj.data))[0]
                         }
-                        self.__renderDomRecord.push($(item.element).appendTo(self.$ctn))
+                        self.__renderDomRecord[itemObj.row] = $(item.element).appendTo(self.$ctn);
                     }
                     return item;
                 },
@@ -309,26 +314,26 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             }
         },
         /**
-        * enable the switch for boundry back bounce
-        **/
+         * enable the switch for boundry back bounce
+         **/
         enableBoundryCheck: function() {
             var self = this;
             self.__boundryCheckEnabled = true;
             self._boundryCheck();
         },
-         /**
-        * disable the switch for boundry back bounce
-        **/
+        /**
+         * disable the switch for boundry back bounce
+         **/
         disableBoundryCheck: function() {
             var self = this;
             self.__boundryCheckEnabled = false;
         },
         /**
-        * scroll the root element with an animate
-        * @param offset {Number} scrollTop
-        * @param duration {Number} duration for animte
-        * @param easing {Number} easing functio for animate : ease-in | ease-in-out | ease | bezier
-        **/
+         * scroll the root element with an animate
+         * @param offset {Number} scrollTop
+         * @param duration {Number} duration for animte
+         * @param easing {Number} easing functio for animate : ease-in | ease-in-out | ease | bezier
+         **/
         scrollTo: function(offset, duration, easing) {
             var self = this;
             var duration = duration || 0;
@@ -340,6 +345,12 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             container.style[transition] = ["-", vendor, "-transform ", duration, "s ", easing, " 0s"].join("");
             self.isScrolling = true;
             self.update();
+            self.fire("scrollTo",{
+                transition:["-", vendor, "-transform ", duration, "s ", easing, " 0s"].join(""),
+                offsetTop:offset,
+                duration:duration,
+                easing:easing
+            })
         },
         //boundry back bounce
         _boundryCheck: function() {
@@ -358,6 +369,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
         _createContainer: function() {
             var self = this;
             if (self.__isContainerCreated) return;
+
             var container;
             var $renderTo = self.$renderTo;
             //support sync rendering
@@ -372,18 +384,20 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             container.style.width = "100%";
             container.style.position = "relative";
             container.style['z-index'] = 1;
-            container.style[prefixStyle("backfaceVisibility")] = "hidden";
-            container.style[prefixStyle("perspective")] = 0;
             self.translateY(container, 0);
             self.$ctn = $(container);
             self.__isContainerCreated = true;
+            self.fire(AFTER_RENDER);
         },
         //update height & render
         sync: function() {
+            this.render();
+        },
+        isInSideOfBoundry:function(){
             var self = this;
-            var userConfig = self.userConfig;
-            var height = self.height = userConfig.height || self.$renderTo.height();
-            self.render();
+            var pos = self.getOffsetTop();
+            var height = self.height;
+            return pos <= 0 && pos >= height - self.containerHeight
         },
         //render
         render: function() {
@@ -391,6 +405,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             self.getDomInfo();
             self._createContainer();
             var userConfig = self.userConfig;
+            var height = self.height = userConfig.height || self.$renderTo.height();
             var len = self.domInfo.length;
             var lastItem = self.domInfo[len - 1];
             var $renderTo = self.$renderTo;
@@ -400,9 +415,10 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             if (self.containerHeight < self.height) {
                 self.containerHeight = self.height;
             }
+
             for (var i = 0, l = self.domInfo.length; i < l; i++) {
                 //render stickies where type = 2 once
-                if (self.domInfo[i]['type'] == 2 && !self.__renderIdRecord[self.domInfo[i]['row']]) {
+                if (self.domInfo[i]['type'] == 2 && !self.__stickiesRecord[self.domInfo[i]['row']]) {
                     var itemNode = document.createElement("div");
                     itemNode.style.top = 0;
                     itemNode.style.width = "100%";
@@ -411,20 +427,19 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                     self.translateY(itemNode, self.domInfo[i]['top']);
                     itemNode.innerHTML = self.domInfo[i]['template'] || "";
                     container.appendChild(itemNode)
-                    self.__renderIdRecord[self.domInfo[i]['row']] = 1;
+                    self.__stickiesRecord[self.domInfo[i]['row']] = 1;
                 }
             }
             $ctn.height(self.containerHeight);
             self._bindEvt();
             self.update();
+            self.fire(SYNC)
         },
         //event bind
         _bindEvt: function() {
             var self = this;
-            if (self.__isEvtBind) return;
-            self.__isEvtBind = true;
-            var startPos;
-            var screenY;
+            
+            var startPos = 0;
             var _v = null;
             var userConfig = self.userConfig;
             var $ctn = self.$ctn;
@@ -432,29 +447,38 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             var $renderTo = self.$renderTo;
             var height = self.height;
 
-            $renderTo.on(Drag.DRAG_START, function(e) {
-                e.preventDefault();
+            if (self.__isEvtBind) return;
+            self.__isEvtBind = true;
+
+            $renderTo.on("touchstart",function(e){
+                
+            }).on("tap",function(e){
+                if(!self.isScrolling){
+                }
+                self.isScrolling = false;
+            }).on(Drag.DRAG_START, function(e) {
                 if (e.changedTouches.length > 1) return;
                 startPos = self.getOffsetTop();
                 if (self.isScrolling) {
+                    //prevent wrong tap
+                    // e.preventDefault();
                     self.fire(SCROLL_END, {
                         offsetTop: startPos
                     });
                 }
-                self.isScrolling = false;
-                screenY = e.changedTouches[0].screenY;
+                
                 self.translateY(container, startPos);
                 container.style[transition] = "";
                 self.fire(DRAG_START);
             }).on(Drag.DRAG, function(e) {
                 e.preventDefault();
                 if (e.changedTouches.length > 1) return;
-                var pos = startPos / 1 + e.changedTouches[0].screenY / 1 - screenY;
+                var pos =  Number(startPos) + e.deltaY;
                 if (pos > 0) { //overtop 
                     pos = pos / 2;
                 }
-                if (pos < height - self.containerHeight) { //overbottom 
-                    pos = pos + (height - self.containerHeight - pos) / 2;
+                if (pos < self.height - self.containerHeight) { //overbottom 
+                    pos = pos + (self.height - self.containerHeight - pos) / 2;
                 }
                 self.translateY(container, pos.toFixed(0));
                 container.style[transition] = "";
@@ -478,50 +502,53 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                         offsetTop: self.getOffsetTop()
                     })
                     self._boundryCheck();
+                     self.update();
                     return;
-                }
-                var height = self.height;
-                var s0 = self.getOffsetTop();
-                var maxSpeed = userConfig.maxSpeed > 0 && userConfig.maxSpeed < 6 ? userConfig.maxSpeed : 3;
-                if (v > maxSpeed) {
-                    v = maxSpeed;
-                }
-                if (v < -maxSpeed) {
-                    v = -maxSpeed;
-                }
-                //judge the direction
-                self.direction = e.velocityY < 0 ? "up" : "down";
-                if (s0 > 0 || s0 < height - self.containerHeight) {
-                    var a = BOUNDRY_CHECK_ACCELERATION * (v / Math.abs(v));
-                    var t = v / a;
-                    var s0 = self.getOffsetTop();
-                    var s = s0 + t * v / 2;
-                    self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
-                    return;
-                }
-                var a = SROLL_ACCELERATION * (v / Math.abs(v));
-                var t = v / a;
-                var s = s0 + t * v / 2;
-                //over top boundry check bounce
-                if (s > 0) {
-                    var _s = 0 - s0;
-                    var _t = (v - Math.sqrt(-2 * a * _s + v * v)) / a;
-                    self.scrollTo(0, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
-                    _v = v - a * _t;
-                //over bottom boundry check bounce
-                } else if (s < height - self.containerHeight) {
-                    var _s = (height - self.containerHeight) - s0;
-                    var _t = (v + Math.sqrt(-2 * a * _s + v * v)) / a;
-                    self.scrollTo(self.containerHeight - height, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
-                    _v = v - a * _t;
-                // normal
                 } else {
-                    self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
+                    var height = self.height;
+                    var s0 = self.getOffsetTop();
+                    var maxSpeed = userConfig.maxSpeed > 0 && userConfig.maxSpeed < 6 ? userConfig.maxSpeed : 3;
+                    if (v > maxSpeed) {
+                        v = maxSpeed;
+                    }
+                    if (v < -maxSpeed) {
+                        v = -maxSpeed;
+                    }
+                    //judge the direction
+                    self.direction = e.velocityY < 0 ? "up" : "down";
+                    if (s0 > 0 || s0 < height - self.containerHeight) {
+                        var a = BOUNDRY_CHECK_ACCELERATION * (v / Math.abs(v));
+                        var t = v / a;
+                        var s0 = self.getOffsetTop();
+                        var s = s0 + t * v / 2;
+                        self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
+                        return;
+                    }
+                    var a = SROLL_ACCELERATION * (v / Math.abs(v));
+                    var t = v / a;
+                    var s = s0 + t * v / 2;
+                    //over top boundry check bounce
+                    if (s > 0) {
+                        var _s = 0 - s0;
+                        var _t = (v - Math.sqrt(-2 * a * _s + v * v)) / a;
+                        self.scrollTo(0, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
+                        _v = v - a * _t;
+                        //over bottom boundry check bounce
+                    } else if (s < height - self.containerHeight) {
+                        var _s = (height - self.containerHeight) - s0;
+                        var _t = (v + Math.sqrt(-2 * a * _s + v * v)) / a;
+                        self.scrollTo(self.containerHeight - height, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
+                        _v = v - a * _t;
+                        // normal
+                    } else {
+                        self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
+                    }
+                    self.isScrolling = true;
+                    setTimeout(function() {
+                        self.update();
+                    }, 10)
                 }
-                self.isScrolling = true;
-                setTimeout(function() {
-                    self.update();
-                }, 10)
+
 
             }
 
@@ -530,6 +557,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 if (containerClsReg.test(e.target.className)) {
                     self.isScrolling = false;
                     if (_v) {
+                        self.fire("outOfBoundry")
                         var v = _v;
                         var a = 0.04 * (v / Math.abs(v));
                         var t = v / a;

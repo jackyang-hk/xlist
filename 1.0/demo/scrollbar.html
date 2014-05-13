@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" type="text/css" href="demo.css">
+<title>XList demo: infinite scrolling</title>
+</head>
+<body >
+<div id="header">XList</div>
+
+<div id="J_List">
+    <ul class="ks-xlist-container"></ul>
+</div>
+
+<div id="footer">A infinity list</div>
+ <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
+<script>
+KISSY.use("gallery/xlist/1.0/index,gallery/template/1.0/,gallery/xlist/1.0/plugin/scrollbar", function(S, XList, Template, ScrollBarPlugin) {
+	var $ = S.all
+	var data = (function() {
+        var tmp = [];
+        for (var i = 0; i < 50; i++) {
+            tmp.push({
+                num: i
+            })
+        }
+        return tmp
+    })()
+
+	var xlist = new XList({
+		renderTo: "#J_List",
+		autoRender: false,
+		data: data,
+		itemHeight: 50 ,
+		template: '<li class="row">Row {{num}}</li>'
+	});
+
+	xlist.plug(new ScrollBarPlugin({
+		xlist: xlist
+	}));
+
+	xlist.render()
+})
+</script>
+</body>
+</html>

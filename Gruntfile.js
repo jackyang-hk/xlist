@@ -61,7 +61,7 @@ module.exports = function(grunt) {
                     {
                         expand: true,
                         cwd: '<%= pkg.version %>/build',
-                        src: ['**/*.js', '!**/*-min.js'],
+                        src: ['**/*.js', '!**/*-min.js','plugin/*.js'],
                         dest: '<%= pkg.version %>/build',
                         ext: '-min.js'
                     }
@@ -144,7 +144,8 @@ module.exports = function(grunt) {
 						src: [
 							'**/*.css',
 							'!build/**/*.css',
-							'!demo/**/*.css'
+							'!demo/**/*.css',
+                            'plugin/*.js'
 						], 
 						dest: '<%= pkg.version %>/build/', 
 						filter: 'isFile'
@@ -214,7 +215,7 @@ module.exports = function(grunt) {
 
 
 	grunt.registerTask('build', '默认构建任务', function() {
-		task.run(['clean:build', 'kmc','uglify', 'copy','less','sass','cssmin']);
+		task.run(['clean:build', 'kmc', 'copy','uglify']);
 	});
 
 	// 启动Debug调试时的本地服务：grunt debug

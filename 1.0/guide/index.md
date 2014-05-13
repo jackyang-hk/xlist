@@ -7,10 +7,13 @@ Xlist是基于html5的无尽下拉列表实现
 * demo：
 
 
-
-[index.html](../demo/index.html)
+[default.html](../demo/default.html)
 
 [pagination.html](../demo/pagination.html)
+
+[scrollbar.html](../demo/scrollbar.html)
+
+[pulldownrefresh.html](../demo/pulldownrefresh.html)
 
 ## 初始化组件
 		

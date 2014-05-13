@@ -1,130 +1,64 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8"/>
-    <meta content="yes" name="apple-mobile-web-app-capable"/>
-<meta content="yes" name="apple-touch-fullscreen"/>
-<meta content="telephone=no,email=no" name="format-detection"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
-    <title>Xlist的demo</title>
-    <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
-    <link rel="stylesheet" href="http://g.tbcdn.cn/kissy/k/1.3.0/css/dpl/base-min.css">
-<link rel="stylesheet" type="text/css" href="http://g.tbcdn.cn/ju/??h5-compo/1.0.0/compo.css,wap-2014/1.2.3/app.css">
-    <style type="text/css">
-    body{
-        margin:0;
-        background: #ccc;
-    }
-    .container{
-        height: 100%;
-        width: 100%;
-        position: absolute;
-        overflow-y:hidden;
-    }
-    .item-container{
-        position: absolute;
-        height: 100%;
-        width: 100%;
-        -webkit-backface-visibility:hidden;
-    }
-    .item{
-        position:absolute;
-        width:100%;
-        height: 107px;
-    }
-    .item-list ul li{
-        width: 100%;
-    }
-    .item-list ul li .item-pic{
-        -webkit-box-shadow:none;
-    }
-
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" type="text/css" href="demo.css">
+<title>XList demo: infinite scrolling</title>
 </head>
-<body>
-<section id="J_Nav" class="header" style="position:absolute;z-index:100;width:100%;">
-<div class="head">
-                <div class="head-in" id="J_headNav">
-                    <div class="logo">
-                        <a href="#!/today">
-                            <s></s>
-                        </a>
-                    </div>
-                    <div class="naver">
-                        <ul>
-                            <li class="today on">
-                                <a href="#!/today">今日</a>
-                            </li>
-                            <li class="brand">
-                                <a href="#!/brand">品牌</a>
-                            </li>
-                            <li class="life">
-                                <a href="#!/life">生活</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="hd-menu">
-                        <a class="btn-hd-menu"></a>
-                    </div>
-                </div>
-            </div>
-</section>
+<body >
+<div id="header">XList</div>
 
+<div id="J_List">
+    <ul class="ks-xlist-container"></ul>
+</div>
 
-
-<div class="container item-list" >
-    <ul class="item-container" id="J_List">
-        
-    </ul>
-</div>
-<script type="tpl" id="J_Tpl">
-<li>
-<a target="_top" href="http://a.m.taobao.com/i37319860308.htm?tg_key=jhs&amp;v=0&amp;ttid=jhs_wap">
-<div class="item-pic">
-    <s>
-    </s>
-    <img class="J_IMG" width="120" height="80" data-src="{{baseinfo.picUrl}}_240x240Q90.jpg">
-</div>
-<div class="item-info">
-    <h3 class="good-name">
-        {{name.shortName}}
-    </h3>
-    <div class="pirce">
-        <b class="promote-price">
-            ￥98.00
-        </b>
-    </div>
-    <div class="buy-now">
-        <span class="discount">
-            3.8折
-        </span>
-        <span class="cost-price">
-            ￥
-            <del>
-                258.00
-            </del>
-        </span>
-        <span class="buy-count">
-            12457人已购买
-        </span>
-    </div>
-</div>
-</a>
-</li>
-</script>
+<div id="footer">A infinity list</div>
+ <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
 <script>
 (function(S){
-S.use('node,ajax,gallery/xlist/1.0/index,', function(S,Node,Ajax, XList) {
-    var $ = S.all,list;
+S.use('node,ajax,gallery/xlist/1.0/index,gallery/template/1.0/,gallery/xlist/1.0/plugin/pulldown,gallery/xlist/1.0/plugin/scrollbar', function(S,Node,Ajax, XList,Template,PullDownPlugin,ScrollBarPlugin) {
+    var $ = S.all,xlist;
     /*
     记录每一页的数据  {}
-
     */
     var catchedData = {};
     var page = 1;
+    //实例化
+    xlist = new XList({
+        renderTo: "#J_List",
+        autoRender:false,
+        template: '<li class="row">Row {{num}}</li>',
+        itemHeight: 50
+    });
+
+    xlist.plug(new PullDownPlugin({
+        xlist: xlist,
+        height: 50,
+        content: "<span class='down'>Pull Down To Reload</span><span class='up'>Release To Reload</span>",
+        loadingContent: "loading..."
+    }));
+
+    xlist.plug(new ScrollBarPlugin({
+        xlist: xlist
+    }));
+
+
+    getData()
+
+
+
+    xlist.on("scrollEnd",function(e){
+         if(xlist.height-e.offsetTop > xlist.containerHeight){
+            //next page
+            getData()
+         }
+
+    })
+
     //获取每一页的数据
     function getData(){
-
         var formatData = function(data){
             var tmp = []
             for(var i in data){
@@ -138,65 +72,22 @@ S.use('node,ajax,gallery/xlist/1.0/index,', function(S,Node,Ajax, XList) {
         //如果存在就不加载
         if(page && catchedData[page]) return;
          S.io({
-                url:"http://ju.taobao.com/json/tg/ajaxGetItemsV2.json",
-                dataType:"jsonp",
+                url:"data.json",
+                dataType:"json",
                 data:{
-                    page: page,
-                    type: 0
+                    page: page
                 },
                 success:function(e){
                     if(e.itemList && e.itemList.length){
                         catchedData[page] = e.itemList;
-                        list.removeData();
-                        list.setData(formatData(catchedData));
-                        list.sync();
-                        showImg();
+                        xlist.removeData();
+                        xlist.setData(formatData(catchedData));
+                        xlist.render();
                         page ++;
                     }
-                    
                 }
             })
     }
-
-    //图片懒加载
-     function showImg(){
-        $(".J_IMG",$("#J_List")).each(function(){
-            $(this).attr("src",$(this).attr("data-src"))
-        })
-    }
-
-
-    //实例化
-    list = new XList({
-        renderTo: "#J_List",
-        autoRender:false,
-        template: $("#J_Tpl").html(),
-        stickies:{
-            0:{
-                height:45
-            }
-        },
-        itemHeight: 107 //行高
-    });
-
-    getData()
-
-    list.on("scrollEnd",function(e){
-         showImg();
-
-         console.log(e.offsetTop)
-         if(list.height-e.offsetTop > list.containerHeight){
-            //滑到底部 加载下一页数据
-            console.log("next page")
-            getData()
-         }
-
-    })
-
-   
-
-
-    
 
 })
 })(KISSY)

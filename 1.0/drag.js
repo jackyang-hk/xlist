@@ -2,7 +2,7 @@
 	Drag Event for KISSY MINI 
 	@author xiaoqi.huxq@alibaba-inc.com
 */
-KISSY.add(function(S,Node) {
+KISSY.add(function(S, Node) {
 	var doc = window.document;
 	var DRAG_START = 'gestureDragStart',
 		DRAG_END = 'gestureDragEnd',
@@ -11,7 +11,9 @@ KISSY.add(function(S,Node) {
 		MAX_SPEED = 8;
 	var singleTouching = false;
 	var $ = S.all;
-	var touch, record;
+	var touch = {}, record = [];
+	var startX = 0;
+	var startY = 0;
 
 	function touchStartHandler(e) {
 		if (e.changedTouches.length > 1) {
@@ -20,8 +22,8 @@ KISSY.add(function(S,Node) {
 		}
 		record = [];
 		touch = {};
-		touch.startX = e.changedTouches[0].clientX;
-		touch.startY = e.changedTouches[0].clientY;
+		touch.startX = e.touches[0].clientX;
+		touch.startY = e.touches[0].clientY;
 		touch.deltaX = 0;
 		touch.deltaY = 0;
 		e.touch = touch;
@@ -36,21 +38,45 @@ KISSY.add(function(S,Node) {
 		$(e.target).fire(DRAG_START,e);
 	}
 
+
 	function touchMoveHandler(e) {
 		if (e.changedTouches.length > 1) return;
-		touch.deltaX = e.changedTouches[0].clientX - touch.startX;
-		touch.deltaY = e.changedTouches[0].clientY - touch.startY;
-		e.touch = touch;
-		record.push({
-			deltaX: touch.deltaX,
-			deltaY: touch.deltaY,
-			timeStamp: e.timeStamp
-		});
+		if (!record.length) {
+			touch = {};
+			touch.startX = e.touches[0].clientX;
+			touch.startY = e.touches[0].clientY;
+			touch.deltaX = 0;
+			touch.deltaY = 0;
+			e.touch = touch;
+			record.push({
+				deltaX: touch.deltaX,
+				deltaY: touch.deltaY,
+				timeStamp: e.timeStamp
+			});
+			//be same to kissy
+			e.deltaX = touch.deltaX;
+			e.deltaY = touch.deltaY;
+			$(e.target).fire(DRAG_START, e);
+		} else {
+			touch.deltaX = e.touches[0].clientX - touch.startX;
+			touch.deltaY = e.touches[0].clientY - touch.startY;
+			e.touch = touch;
+			record.push({
+				deltaX: touch.deltaX,
+				deltaY: touch.deltaY,
+				timeStamp: e.timeStamp
+			});
+			//be same to kissy
+			e.deltaX = touch.deltaX;
+			e.deltaY = touch.deltaY;
+			e.velocityX = 0;
+			e.velocityY = 0;
+			if (!e.isPropagationStopped()) {
+				$(e.target).fire(DRAG, e);
+			}
+		}
 
-		//be same to kissy
-		e.deltaX = touch.deltaX;
-		e.deltaY = touch.deltaY;
-		$(e.target).fire(DRAG,e);
+
 	}
 
 	function touchEndHandler(e) {
@@ -69,8 +95,8 @@ KISSY.add(function(S,Node) {
 		var startX = e.touch.startX;
 		var startY = e.touch.startY;
 		var len = record.length;
-		var startTime = record[0]['timeStamp'];
-		if (len < 2) return;
+		var startTime = record[0] && record[0]['timeStamp'];
+		if (len < 2 || !startTime) return;
 		var duration = record[len - 1]['timeStamp'] - record[0]['timeStamp'];
 		for (var i in record) {
 			if (i > 0) {
@@ -117,7 +143,9 @@ KISSY.add(function(S,Node) {
 		e.velocityX = Math.abs(velocityObj.velocityX) > MAX_SPEED ? velocityObj.velocityX / Math.abs(velocityObj.velocityX) * MAX_SPEED : velocityObj.velocityX;
 		e.velocityY = Math.abs(velocityObj.velocityY) > MAX_SPEED ? velocityObj.velocityY / Math.abs(velocityObj.velocityY) * MAX_SPEED : velocityObj.velocityY;
 		e.velocity = Math.sqrt(Math.pow(e.velocityX, 2) + Math.pow(e.velocityY, 2))
-		$(e.target).fire(DRAG_END,e);
+		$(e.target).fire(DRAG_END, e);
+		touch = {};
+		record = [];
 	}
 
 	function distance(x, y, x2, y2) {
@@ -156,11 +184,15 @@ KISSY.add(function(S,Node) {
 		}
 	});
 
+
+
 	//枚举
 	return {
-		DRAG_START:DRAG_START,
-		DRAG:DRAG,
-		DRAG_END:DRAG_END
+		DRAG_START: DRAG_START,
+		DRAG: DRAG,
+		DRAG_END: DRAG_END
 	};
 
-},{requires:['node']});
+}, {
+	requires: ['node']
+});
