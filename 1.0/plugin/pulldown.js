@@ -66,12 +66,12 @@ KISSY.add(function(S, Base, Node) {
 				clearTimeout(loadingItv);
 				clearTimeout(reloadItv);
 				self.isBoundryBounce = false;
+				xlist.enableBoundryCheck();
 			})
 
 			xlist.on("outOfBoundry", function() {
 				self.isBoundryBounce = true;
 			})
-
 
 			xlist.on("scrollEnd", function(e) {
 				offsetTop = xlist.getOffsetTop();
