@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
+ * @plugin scrollbar XLIST滚动条插件
+ **/
 KISSY.add(function(S,Node,Base,Anim){
 	var $ = S.all;
 	var ScrollBar = Base.extend({
