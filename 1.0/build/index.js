@@ -9,7 +9,7 @@ gallery/xlist/1.0/index
 	Drag Event for KISSY MINI 
 	@author xiaoqi.huxq@alibaba-inc.com
 */
-KISSY.add('gallery/xlist/1.0/drag',function(S, Node) {
+;KISSY.add('gallery/xlist/1.0/drag',function(S, Node) {
 	var doc = window.document;
 	var DRAG_START = 'gestureDragStart',
 		DRAG_END = 'gestureDragEnd',
@@ -212,7 +212,7 @@ KISSY.add('gallery/xlist/1.0/drag',function(S, Node) {
  * 2014.5.26  新增dataChange事件
  * 2014.5.26  新增pullup插件
  **/
-KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
+;KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
     var $ = S.all;
     var clsPrefix,
         containerClsName,

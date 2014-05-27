@@ -2,7 +2,7 @@
 	Drag Event for KISSY MINI 
 	@author xiaoqi.huxq@alibaba-inc.com
 */
-KISSY.add(function(S, Node) {
+;KISSY.add(function(S, Node) {
 	var doc = window.document;
 	var DRAG_START = 'gestureDragStart',
 		DRAG_END = 'gestureDragEnd',

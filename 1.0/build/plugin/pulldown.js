@@ -3,7 +3,7 @@
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @plugin pulldown XLIST下拉刷新插件
  **/
-KISSY.add(function(S, Base, Node) {
+;KISSY.add(function(S, Base, Node) {
 	var $ = S.all;
 	var prefix;
 	var containerCls;

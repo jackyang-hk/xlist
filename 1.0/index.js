@@ -7,7 +7,7 @@
  * 2014.5.26  新增dataChange事件
  * 2014.5.26  新增pullup插件
  **/
-KISSY.add(function(S, N, E, Base, Template, Drag) {
+;KISSY.add(function(S, N, E, Base, Template, Drag) {
     var $ = S.all;
     var clsPrefix,
         containerClsName,
