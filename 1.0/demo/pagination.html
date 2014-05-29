@@ -24,6 +24,7 @@
  <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
 <script>
 (function(S){
+
 S.use('node,ajax,gallery/xlist/1.0/index,gallery/template/1.0/,gallery/xlist/1.0/plugin/pulldown,gallery/xlist/1.0/plugin/scrollbar,gallery/xlist/1.0/plugin/pullup', function(S,Node,Ajax, XList,Template,PullDownPlugin,ScrollBarPlugin,PullUpPlugin) {
     var $ = S.all,xlist;
     /*
@@ -63,7 +64,6 @@ S.use('node,ajax,gallery/xlist/1.0/index,gallery/template/1.0/,gallery/xlist/1.0
     });
 
     pullup.on("loading",function(){
-        console.log("loading")
         //get remote data
         getData()
 
