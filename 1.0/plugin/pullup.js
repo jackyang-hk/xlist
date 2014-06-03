@@ -81,7 +81,6 @@
 			})
 
 			xlist.on("dataChange", function() {
-				console.log("dataChange")
 				self.set("status","up")
 			})
 

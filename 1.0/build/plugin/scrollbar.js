@@ -88,11 +88,6 @@
 			self.xlist.on("scrollTo",function(e){
 				self._scrollTo(e.offsetTop*self.ratio,e.duration,e.easing);
 			});
-			self.xlist.on("scrollEnd",function(e){
-				if(self.xlist.isInSideOfBoundry()){
-					self._moveTo(-e.offsetTop*self.ratio)
-				}
-			});
 
 			$(window).on("resize",function(){
 				self._update();
