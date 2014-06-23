@@ -2,12 +2,8 @@
  * @fileoverview
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @module xlist
- * @changelog
- * 2014.5.12  taphold触发scrollEnd
- * 2014.5.26  新增dataChange事件
- * 2014.5.26  新增pullup插件
  **/
-;KISSY.add(function(S, N, E, Base, Template, Drag) {
+KISSY.add(function(S, N, E, Base, Template, Drag) {
     var $ = S.all;
     var clsPrefix,
         containerClsName,
@@ -15,16 +11,13 @@
     //event names
     var SCROLL_END = "scrollEnd";
     var SCROLL = "scroll";
-    var SCROLL_TO = "scrollTo";
     var DRAG_END = "dragEnd";
     var DRAG_START = "dragStart";
     var DRAG = "drag";
     var AFTER_RENDER = "afterRender";
-    var BEFORE_RENDER = "beforeRender";
     var SYNC = "sync";
-    var DATA_CHANGE = "dataChange";
     //constant acceleration for scrolling
-    var SROLL_ACCELERATION = 0.003;
+    var SROLL_ACCELERATION = 0.002;
 
     //boundry checked bounce effect
     var BOUNDRY_CHECK_DURATION = 0.4;
@@ -73,6 +66,8 @@
 
     var circular = 'cubic-bezier(0.1, 0.57, 0.1, 1)';
 
+
+
     /**
         * constructor for XList
         * @param renderTo {String|KISSY.Node} root element
@@ -95,10 +90,6 @@
                 translate3D: false,
                 autoRender: true,
                 itemHeight: 30,
-                boundry:{
-                    top:0,
-                    bottom:0
-                },
                 useTransition: true
             }, self.userConfig, undefined, undefined, true);
             self.$renderTo = $(userConfig.renderTo).css({
@@ -114,9 +105,8 @@
 
             containerClsReg = new RegExp(containerClsName);
 
+            var height = self.height = userConfig.height || self.$renderTo.height();
 
-            self.height  = self.computeHeight();
-            
             self.visibleIndex = {};
 
             self.__stickiesRecord = {};
@@ -131,14 +121,15 @@
         //translate a element vertically
         translateY: function(el, y) {
             var self = this;
+            // el.style[transform] = self.userConfig.translate3D ? "translate3D(0," + y + "px,0)" : "translateY(" + y + "px)";
             el.style[transform] = "translate(0," + y + "px) translateZ(0)";
+            // el.style[transform] = "translate(0," + y + "px)";
             return;
         },
         //remove data
         removeData: function() {
             var self = this;
             self.userConfig.data = [];
-            self.fire(DATA_CHANGE);
         },
         //append new data
         setData: function(data) {
@@ -146,7 +137,6 @@
             for (var i = 0, len = data.length; i < len; i++) {
                 self.userConfig.data.push(data[i]);
             }
-            self.fire(DATA_CHANGE);
         },
         /**
          * get all element posInfo such as top,height,template,html
@@ -158,7 +148,7 @@
             var stickies = userConfig.stickies || {};
             var data = userConfig.data;
             var itemHeight = userConfig.itemHeight;
-            var offsetTop = userConfig.boundry.top;
+            var offsetTop = 0;
             var domInfo = [];
             var len = (function() {
                 var l = 0;
@@ -244,7 +234,7 @@
             for (var i in itemList) {
                 var item = null;
                 if (!self.visibleIndex[i] && itemList[i]['type'] != 2) {
-                    item = itemPool.getItem(itemList[i]);
+                    item = itemPool.getItem(itemList[i],i);
                     item.element.style.position = "absolute";
                     item.element.style.height = itemList[i]['height'] + "px";
                     self.translateY(item.element, itemList[i]['top']);
@@ -299,14 +289,15 @@
             var userConfig = self.userConfig;
             var itemPool = self.itemPool = {
                 items: [],
-                getItem: function(itemObj) {
+                getItem: function(itemObj,index) {
                     var item;
                     if (this.items.length) {
                         item = this.items.pop();
                         if (S.isFunction(userConfig.renderHook)) {
                             item.element.innerHTML = userConfig.renderHook({
                                 item: item,
-                                data: itemObj['data']
+                                data: itemObj['data'],
+                                index:Number(index)
                             }).innerHTML;
                         } else {
                             item.element.innerHTML = $(Template(itemObj.template).render(itemObj.data)).html()
@@ -318,7 +309,8 @@
                         if (S.isFunction(userConfig.renderHook)) {
                             item.element = userConfig.renderHook({
                                 item: item,
-                                data: itemObj.data
+                                data: itemObj.data,
+                                index:Number(index)
                             });
                         } else {
                             item.element = $(Template(itemObj.template).render(itemObj.data))[0]
@@ -368,7 +360,7 @@
             }
             self.isScrolling = true;
             self.update();
-            self.fire(SCROLL_TO, {
+            self.fire("scrollTo", {
                 transition: transitionStr,
                 offsetTop: offset,
                 duration: duration,
@@ -433,20 +425,13 @@
             var height = self.height;
             return pos <= 0 && pos >= height - self.containerHeight
         },
-        computeHeight : function(){
-            var self =this;
-            return (self.userConfig.height || self.$renderTo.height()) - self.userConfig.boundry.bottom ;
-        },
         //render
         render: function() {
             var self = this;
-            //before render
-            self.fire(BEFORE_RENDER)
             self.getDomInfo();
             self._createContainer();
             var userConfig = self.userConfig;
-            var height = self.height = self.computeHeight();
-
+            var height = self.height = userConfig.height || self.$renderTo.height();
             var len = self.domInfo.length;
             var lastItem = self.domInfo[len - 1];
             var $renderTo = self.$renderTo;
