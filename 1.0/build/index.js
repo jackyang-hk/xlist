@@ -260,19 +260,12 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
         return vendor + style.charAt(0).toUpperCase() + style.substr(1);
     }
 
-
     function quadratic2cubicBezier(a, b) {
         return [
-            [(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)], [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
+            [(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)],
+            [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
         ];
     }
-
-    var quadratic = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-
-    var circular = 'cubic-bezier(0.1, 0.57, 0.1, 1)';
-
-
-
     /**
         * constructor for XList
         * @param renderTo {String|KISSY.Node} root element
@@ -402,7 +395,8 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             if (posTop < 0) {
                 posTop = 0;
             }
-            var tmp = {}, item;
+            var tmp = {},
+                item;
             for (var i = 0, len = data.length; i < len; i++) {
                 item = data[i];
                 if (item['top'] >= posTop - itemHeight && item['top'] <= posTop + 2 * maxBufferedNum * itemHeight + height) {
@@ -439,7 +433,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             for (var i in itemList) {
                 var item = null;
                 if (!self.visibleIndex[i] && itemList[i]['type'] != 2) {
-                    item = itemPool.getItem(itemList[i],i);
+                    item = itemPool.getItem(itemList[i], i);
                     item.element.style.position = "absolute";
                     item.element.style.height = itemList[i]['height'] + "px";
                     self.translateY(item.element, itemList[i]['top']);
@@ -494,7 +488,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             var userConfig = self.userConfig;
             var itemPool = self.itemPool = {
                 items: [],
-                getItem: function(itemObj,index) {
+                getItem: function(itemObj, index) {
                     var item;
                     if (this.items.length) {
                         item = this.items.pop();
@@ -502,7 +496,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                             item.element.innerHTML = userConfig.renderHook({
                                 item: item,
                                 data: itemObj['data'],
-                                index:Number(index)
+                                index: Number(index)
                             }).innerHTML;
                         } else {
                             item.element.innerHTML = $(Template(itemObj.template).render(itemObj.data)).html()
@@ -515,7 +509,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                             item.element = userConfig.renderHook({
                                 item: item,
                                 data: itemObj.data,
-                                index:Number(index)
+                                index: Number(index)
                             });
                         } else {
                             item.element = $(Template(itemObj.template).render(itemObj.data))[0]
@@ -665,10 +659,23 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             self.update();
             self.fire(SYNC)
         },
+        //simulateMouseEvent
+        simulateMouseEvent: function(event, type) {
+            if (event.touches.length > 1) {
+                return;
+            }
+            var touches = event.changedTouches,
+                first = touches[0],
+                simulatedEvent = document.createEvent('MouseEvent');
+            simulatedEvent.initMouseEvent(type, true, true, window, 1,
+                first.screenX, first.screenY,
+                first.clientX, first.clientY, false,
+                false, false, false, 0 /*left*/ , null);
+            event.target.dispatchEvent(simulatedEvent);
+        },
         //event bind
         _bindEvt: function() {
             var self = this;
-
             var startPos = 0;
             var _v = null;
             var userConfig = self.userConfig;
@@ -680,7 +687,13 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
             if (self.__isEvtBind) return;
             self.__isEvtBind = true;
 
-            $renderTo.on("tap tapHold", function(e) {
+            $renderTo.on("touchstart", function(e) {
+                e.preventDefault()
+            }).on("tap", function(e) {
+               if (!self.isScrolling) {
+                    self.simulateMouseEvent(e,"click");
+                }
+            }).on("tap tapHold", function(e) {
                 self.isScrolling = false;
                 self.fire(SCROLL_END, {
                     offsetTop: self.getOffsetTop()
