@@ -13,6 +13,7 @@
 	var PullUp = Base.extend({
 		initializer: function() {
 			var self = this;
+			console.log(self.userConfig)
 			var xlist = self.userConfig.xlist;
 			self.userConfig = S.merge({
 				content: content,
@@ -20,11 +21,12 @@
 				upContent: "",
 				pullUpHeight:40,
 				loadingContent: loadingContent,
+				boundry:{},
 				prefix: "ks-xlist-plugin-pullup-"
 			}, self.userConfig);
 			var height = self.userConfig.height || 60;
 			prefix = self.userConfig.prefix;
-			xlist.userConfig.boundry.bottom = height;
+			// xlist.userConfig.boundry.bottom = height;
 			xlist.on("afterRender",function(){
 				self.render()
 				self.__bindEvt();
