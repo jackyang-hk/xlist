@@ -190,10 +190,12 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             if (posTop < 0) {
                 posTop = 0;
             }
+            // console.log(data[126]['data'][0])
             var tmp = {},
                 item;
             for (var i = 0, len = data.length; i < len; i++) {
                 item = data[i];
+
                 if (item['top'] >= posTop - itemHeight && item['top'] <= posTop + 2 * maxBufferedNum * itemHeight + height) {
                     tmp[item['row']] = item
                 }
@@ -225,6 +227,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
             var height = self.height;
             var offset = -self.getOffsetTop();
             var itemList = self.getItemObj(offset, height, self.domInfo);
+            // console.log(itemList)
             for (var i in itemList) {
                 var item = null;
                 if (!self.visibleIndex[i] && itemList[i]['type'] != 2) {
@@ -243,9 +246,11 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                     delete self.visibleIndex[i];
                 }
             }
+            console.log(offset)
             if (self.isScrolling) {
                 self.updateItv = setTimeout(function() {
                     self.update();
+
                     self.fire(SCROLL, {
                         offsetTop: -offset
                     })
@@ -360,6 +365,13 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                 duration: duration,
                 easing: easing
             })
+
+            setTimeout(function(){
+                self.isScrolling = false;
+                self.fire(SCROLL_END, {
+                    offsetTop: self.getOffsetTop()
+                });
+            },duration*1000)
         },
         /**
          * scroll relative
