@@ -13,7 +13,6 @@
 	var PullUp = Base.extend({
 		initializer: function() {
 			var self = this;
-			console.log(self.userConfig)
 			var xlist = self.userConfig.xlist;
 			self.userConfig = S.merge({
 				content: content,

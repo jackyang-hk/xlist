@@ -3,126 +3,194 @@
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @plugin scrollbar XLIST滚动条插件
  **/
-;KISSY.add(function(S,Node,Base,Anim){
+;
+KISSY.add(function(S, Node, Base, Anim) {
 	var $ = S.all;
+	//最短滚动条高度
+	var MIN_SCROLLBAR_HEIGHT = 60;
+	//滚动条被卷去剩下的最小高度
+	var BAR_MIN_HEIGHT = 5;
 	var ScrollBar = Base.extend({
-		initializer:function(){
+		initializer: function() {
 			var self = this;
-			self.userConfig = S.merge({
-				// containerHeight:0,
-				// indicateHeight:0
-			},self.userConfig);
-
+			self.userConfig = S.merge({}, self.userConfig);
 			self.xlist = self.userConfig.xlist;
-			self.xlist.on("sync",function(){
-				self.set("containerHeight",self.xlist.containerHeight)
-				self.set("indicateHeight",self.xlist.height);
-				self.set("offsetTop",self.xlist.getOffsetTop())
+			self.xlist.on("sync", function() {
+				self.set("containerHeight", self.xlist.containerHeight)
+				self.set("indicateHeight", self.xlist.height);
+				self.set("offsetTop", self.xlist.getOffsetTop())
 				self.render();
 				self._bindEvt();
 			})
 		},
 
-		render:function(){
+		render: function() {
 			var self = this;
-			if(self.__isRender) return;
+			if (self.__isRender) return;
 			self.__isRender = true;
 			var xlist = self.xlist;
 			var tpl_scrollbar = "<div></div>";
 			self.$scrollbar = $(tpl_scrollbar).css({
-				width:"6px",
-				position:"absolute",
-				bottom:"2px",
-				top:"2px",
-				right:"1px",
-				zIndex:999
+				width: "3px",
+				position: "absolute",
+				bottom: "2px",
+				top: "2px",
+				right: "2px",
+				zIndex: 999,
+				overflow: "hidden",
+				"-webkit-border-radius": "2px"
 			}).prependTo(xlist.$renderTo);
-
-			
+			//scrollbar容器高度
+			self.set("barWrapperHeight", self.$scrollbar.height() || 0);
 
 			var tpl_indicate = '<div></div>';
 
 			self.$indicate = $(tpl_indicate).css({
-				"-webkit-box-sizing":"border-box",
-				"position":"absolute",
-				background:"rgba(0,0,0,0.5)",
-				border:"1px solid rgba(255,255,255,0.9)",
-				"border-radius":"3px"
+				"-webkit-box-sizing": "border-box",
+				"position": "absolute",
+				background: "rgba(0,0,0,0.3)",
+				"-webkit-border-radius": "1.5px"
 			}).prependTo(self.$scrollbar).css({
-				width:"100%",
+				width: "100%",
 			});
 
 			self._update();
+		},
+		_update: function() {
+			var self = this;
+			var barInfo = self.computeScrollBar(Math.abs(self.get("offsetTop")));
+			self._moveTo(barInfo.top);
+			self.$indicate.height(barInfo.height);
+		},
+		//计算边界碰撞时的弹性
+		computeScrollBar: function(top) {
+			var self = this;
+			var top = top || 0;
+			//滚动条容器高度
+			var indicateHeight = self.get("indicateHeight");
+			var containerHeight = self.get("containerHeight");
+			var barWrapperHeight = self.get("barWrapperHeight");
+			var ratio = top / containerHeight;
+			var barOffsetTop = barWrapperHeight * ratio;
+			var barHeight = barWrapperHeight * indicateHeight / containerHeight;
+			var _barOffsetTop = barOffsetTop * (barWrapperHeight - MIN_SCROLLBAR_HEIGHT + barHeight) / barWrapperHeight
+			if (barHeight < MIN_SCROLLBAR_HEIGHT) {
+				barHeight = MIN_SCROLLBAR_HEIGHT;
+				barOffsetTop = _barOffsetTop;
+			}
+			//顶部回弹
+			if (barOffsetTop < 0) {
+				barOffsetTop = Math.abs(top) * barHeight / MIN_SCROLLBAR_HEIGHT > barHeight - BAR_MIN_HEIGHT ? BAR_MIN_HEIGHT - barHeight : top * barHeight / MIN_SCROLLBAR_HEIGHT;
+			} else if (barOffsetTop + barHeight > indicateHeight) {
+				//底部回弹
+				var _top = top - containerHeight + indicateHeight;
+				if (_top * barHeight / MIN_SCROLLBAR_HEIGHT > barHeight - BAR_MIN_HEIGHT) {
+					barOffsetTop = indicateHeight - barHeight + barHeight - BAR_MIN_HEIGHT;
+				} else {
+					barOffsetTop = indicateHeight - barHeight + _top * barHeight / MIN_SCROLLBAR_HEIGHT;
+				}
+			}
+			self.set("barOffsetTop", barOffsetTop)
+			return {
+				height: barHeight,
+				top: barOffsetTop
+			};
 
-			
 		},
-		_update:function(){
+		_scrollTo: function(y, duration, easing) {
 			var self = this;
-			self.ratio = self.$scrollbar.height()/self.get("containerHeight");
-			var top = self.get("offsetTop")*self.ratio;
-			var h = self.get("indicateHeight")*self.ratio;
-			self.$indicate.css({
-				transform:"translateY("+top+"px)",
-				transition:"",
-				height:h+"px"
-			});
+			self.show();
+			self.$indicate[0].style.webkitTransform = "translateY(" + y + "px)"
+			self.$indicate[0].style.webkitTransition = [duration, "s ", easing, " 0"].join("");
 		},
-		_scrollTo:function(y,duration,easing){
+		_moveTo: function(y) {
 			var self = this;
-			self.$indicate[0].style.webkitTransform = "translateY("+y+"px)"
-			self.$indicate[0].style.webkitTransition = [duration,"s ",easing," 0"].join("");
-		},
-		_moveTo:function(y){
-			var self = this;
-			self.$indicate[0].style.webkitTransform = "translateY("+y+"px)"
+			self.show();
+			self.$indicate[0].style.webkitTransform = "translateY(" + y + "px)"
 			self.$indicate[0].style.webkitTransition = "";
 		},
-		_bindEvt:function(){
+		_bindEvt: function() {
 			var self = this;
-			if(self.__isEvtBind) return;
+			if (self.__isEvtBind) return;
 			self.__isEvtBind = true;
 
-			self.xlist.on("drag",function(e){
-				self._moveTo(-self.xlist.getOffsetTop()*self.ratio);
+			self.xlist.on("drag", function(e) {
+				self._moveTo(self.computeScrollBar(-self.xlist.getOffsetTop())['top']);
 			})
-			self.xlist.on("scrollTo",function(e){
-				self._scrollTo(e.offsetTop*self.ratio,e.duration,e.easing);
+			self.xlist.on("scrollTo", function(e) {
+				self._scrollTo(self.computeScrollBar(e.offsetTop)['top'], e.duration, e.easing);
 			});
+			self.xlist.on("dragStart", function(e) {
+				self.isBoundryBounce = false;
+			})
+			self.xlist.on("outOfBoundry", function(e) {
+				self.isBoundryBounce = true;
+			})
+			self.xlist.on("scrollEnd", function(e) {
+				if (!self.isBoundryBounce && e.originType != 'tapHold') {
+					// self.hide();
+				}
+			})
 
-			$(window).on("resize",function(){
+			$(window).on("resize", function() {
 				self._update();
 			})
 
-			//距离顶部
-			// self.on("*Change",function(e){
-			// 	self._update();
-			// })
+			self.on("afterOffsetTopChange", function(e) {
+				self._update();
+			})
+			self.on("afterIndicateHeightChange", function(e) {
+				self._update();
+			})
+			self.on("afterContainerHeightChange",function(e){
+				self._update();
+			})
 
 		},
-		hide:function(){
+		hide: function() {
 			var self = this;
-			self.$indicate.hide();
+			self.$indicate.css({
+				opacity: 0
+			});
+			self.$indicate[0].style.webkitTransition = "opacity 0.3s ease-out"
 		},
-		show:function(){
+		show: function() {
 			var self = this;
-			self.$indicate.show();
+			self.$indicate.css({
+				opacity: 1
+			});
 		}
-	},{
-		ATTRS:{
-			"offsetTop":{
-				value:0
+	}, {
+		ATTRS: {
+			//页面顶部被卷去的高度
+			"offsetTop": {
+				value: 0
 			},
-			"containerHeight":{
-				value:0
+			//页面整体高度
+			"containerHeight": {
+				value: 0
 			},
-			"indicateHeight":{
-				value:0
+			//视窗高度
+			"indicateHeight": {
+				value: 0
+			},
+			//滚动条容器高度 = 视窗高度 - 上下空隙
+			"barWrapperHeight": {
+				value: 0
+			},
+			//滚动条高度
+			"barHeight": {
+				value: 0
+			},
+			"barOffsetTop": {
+				value: 0
 			}
-
 		}
 	});
 
 	return ScrollBar;
 
 
-},{requires:['node','base','anim']})
+}, {
+	requires: ['node', 'base', 'anim']
+})

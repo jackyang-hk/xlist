@@ -124,6 +124,17 @@
 </script>
 <script>
 (function(S){
+    if(KISSY.Config.debug){
+    KISSY.config({
+        packages:[
+        {
+            name:"gallery",
+            path:"../../../../",
+            debug:true,
+            tag:Math.random()
+        }]
+    })
+}
 S.use('node,ajax,gallery/xlist/1.0/,gallery/xlist/1.0/plugin/scrollbar,gallery/xlist/1.0/plugin/pulldown,gallery/xlist/1.0/plugin/pullup', function(S,Node,Ajax, XList,ScrollBar,PullDown,PullUp) {
     var $ = S.all,list;
     //记录每一页的数据

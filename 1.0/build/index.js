@@ -514,7 +514,7 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                                 row: Number(row)
                             }).innerHTML;
                         } else {
-                            item.element.innerHTML = $(Template(itemObj.template||"").render(itemObj.data)).html()
+                            item.element.innerHTML = $(Template(itemObj && itemObj.template).render(itemObj.data)).html()
                         }
                     }else if (this.items.length) {
                         item = this.items.pop();
@@ -574,7 +574,10 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
          **/
         scrollTo: function(offset, duration, easing) {
             var self = this;
-            var duration = duration || 0;
+            var duration = duration || 20;
+            if(self.getOffsetTop() == (-offset).toFixed(0)){
+                return;
+            }
             if (duration > 1) {
                 duration = duration / 1000;
             }
@@ -593,13 +596,6 @@ KISSY.add('gallery/xlist/1.0/index',function(S, N, E, Base, Template, Drag) {
                 duration: duration,
                 easing: easing
             })
-
-            setTimeout(function(){
-                self.isScrolling = false;
-                self.fire(SCROLL_END, {
-                    offsetTop: self.getOffsetTop()
-                });
-            },duration*1000)
         },
         /**
          * scroll relative

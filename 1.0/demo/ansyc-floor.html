@@ -19,18 +19,43 @@ body,div,ul,li{
 #J_List{
     position: absolute;
     height: 100%;
-    width: 100%;
+    width: 80%;
+    right: 0;
     display: -webkit-box;
 }
 #J_List .row{
-    width: 100%;
     -webkit-box-flex:1;
     border:1px solid;
+    width: 100%;
     text-align: center;
 }
+.floor-title{
+    background:#f60;line-height:40px;text-align:center;
+    color:#fff;
+}
+.nav{
+    position: absolute;
+    width: 20%;
+    left: 0;
+    top:0;
+    bottom: 0;
+}
+.nav li{
+    line-height: 40px;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+    border-top: 1px solid #fff;
+}
+.nav li.cur{
+    color:#f60;
+    background: #f7f7f7;
+}
 </style>
+<ul id='J_Nav' class='nav'></ul>
 <div id="J_List">
-    
+    <div class="ks-xlist-container">
+        
+    </div>
 </div>
 <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
 <script>
@@ -76,7 +101,7 @@ window.computeStickies = function(){
         stickiesPos[startFloorIndex] = {
             height:40,
             type:2,
-            template:"<div style='background:red;height:40px;'>floor "+startFloorIndex+"</div>"
+            template:"<div class='floor-title'>楼层 "+startFloorIndex+"</div>"
         }
 
         startFloorIndex+= Math.ceil(num/cols)+1;
@@ -102,15 +127,17 @@ window.getMockData = function(floorId,cb){
 
 
 (function(S){
-    // S.config({
-    //     packages:[
-    //     {
-    //         name:"gallery",
-    //         path:"../../../../",
-    //         debug:true,
-    //         tag:Math.random()
-    //     }]
-    // })
+    if(KISSY.Config.debug){
+    KISSY.config({
+        packages:[
+        {
+            name:"gallery",
+            path:"../../../../",
+            debug:true,
+            tag:Math.random()
+        }]
+    })
+}
 S.use('node,ajax,gallery/xlist/1.0/index,gallery/xlist/1.0/plugin/pulldown,gallery/xlist/1.0/plugin/scrollbar', function(S,Node,Ajax, XList,PullDownPlugin,ScrollBarPlugin) {
     var $ = S.all,xlist;
     //缓存楼层数据
@@ -122,14 +149,9 @@ S.use('node,ajax,gallery/xlist/1.0/index,gallery/xlist/1.0/plugin/pulldown,galle
     };
 
 
-    // //渲染电梯
-    // function renderNav(){
-    //     var html ="<ul id='J_Nav' class='nav'>"
-    //     for(var i in floorDataCache){
-    //         html+="<li>floor"+i+"</li>";
-    //     }
-    //     html+=</ul>
-    // }
+    
+
+
 
     function joinFloorData(datas){
         var tmp =[];
@@ -169,6 +191,33 @@ S.use('node,ajax,gallery/xlist/1.0/index,gallery/xlist/1.0/plugin/pulldown,galle
         //计算当前可视区域的楼层
         getCurrentFloorIndexInView(xlist,e.offsetTop)
     })
+
+    //渲染电梯
+    function renderNav(){
+        var html =""
+        for(var i in floorDataCache){
+            html+="<li>楼层 "+(i-1)+"</li>";
+        }
+        console.log(html)
+        $("#J_Nav").html(html)
+
+        $("li",$("#J_Nav")).on("click",function(e){
+            $(e.currentTarget).addClass("cur").siblings().removeClass("cur")
+            jumpToFloor(S.indexOf(e.currentTarget,$("li",$("#J_Nav"))));
+        })
+    }
+
+    renderNav();
+
+    function jumpToFloor(index){
+        var floors = [];
+        for(var i in xlist.domInfo){
+            if(xlist.domInfo[i].type != 1){
+                floors.push(xlist.domInfo[i]);
+            }
+        }
+        xlist.scrollTo(floors[index]['top'],500)
+    }
 
 
     function getCurrentFloorIndexInView(xlist,offsetTop){

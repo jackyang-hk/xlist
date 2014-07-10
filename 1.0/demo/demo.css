@@ -124,3 +124,8 @@ body {
 .ks-xlist-plugin-pulldown-down .down{
     display: inline;
 }
+
+.ks-xlist-plugin-pullup-container{
+        line-height: 60px;
+        text-align: center;
+}
