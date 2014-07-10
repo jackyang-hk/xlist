@@ -5,7 +5,7 @@ Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大
 * 版本：1.0
 * 作者：伯才
 * demo：
-
+### 注意：以下demo请在移动设备上查看
 
 [最简demo](../demo/default.html)
 
@@ -18,6 +18,8 @@ Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大
 [异步楼层加载](../demo/async-floor.html)
 
 [聚划算wap简单demo](../demo/jhs.html)
+
+[聚划算ipad今日团list](http://ju.taobao.com/pad/normal.htm)
 
 ## 初始化组件
 		
