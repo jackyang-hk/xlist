@@ -29,7 +29,7 @@
 			// xlist.userConfig.boundry.bottom = height;
 			xlist.on("afterRender",function(){
 				self.render()
-				self.__bindEvt();
+				self._bindEvt();
 			})
 
 			
@@ -48,19 +48,20 @@
 			}).prependTo(xlist.$ctn);
 			self.fire("afterRender");
 		},
-		__bindEvt:function(){
+		_bindEvt:function(){
 			var self =this;
+			if(self._evtBinded) return;
 			var xlist= self.userConfig.xlist;
 			var $pullup = self.$pullup;
+			var offsetTop = 0;
 
 			self.on("afterStatusChange", function(e) {
 				$pullup.removeClass(prefix + e.prevVal).addClass(prefix + e.newVal);
 				self.setContent(self.userConfig[e.newVal + "Content"]);
 			})
+			
 			$pullup.addClass(prefix + self.get("status"));
 			$pullup.html(self.userConfig[self.get("status") + "Content"] || self.userConfig["content"]);
-
-			var offsetTop = 0;
 
 			xlist.on("drag", function(e) {
 				offsetTop = xlist.getOffsetTop();
@@ -85,6 +86,8 @@
 			xlist.on("dataChange", function() {
 				self.set("status","up")
 			})
+
+			self._evtBinded = true;
 
 		},
 		setContent: function(content) {

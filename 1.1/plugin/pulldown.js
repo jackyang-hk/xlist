@@ -3,8 +3,7 @@
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @plugin pulldown XLIST下拉刷新插件
  **/
-;
-KISSY.add(function(S, Base, Node) {
+;KISSY.add(function(S, Base, Node) {
 	var $ = S.all;
 	var prefix;
 	var containerCls;
@@ -37,12 +36,15 @@ KISSY.add(function(S, Base, Node) {
 			var tpl = '<div class="' + containerCls + '"></div>';
 			var xlist = self.userConfig.xlist;
 			var height = self.userConfig.height || 60;
+			var reloadItv, loadingItv;
+
 			var $pulldown = self.$pulldown = $(tpl).css({
 				position: "absolute",
 				width: "100%",
 				height: height,
 				"top": -height
 			}).prependTo(xlist.$ctn);
+
 			self.on("afterStatusChange", function(e) {
 				$pulldown.removeClass(prefix + e.prevVal).addClass(prefix + e.newVal);
 				self.setContent(self.userConfig[e.newVal + "Content"]);
@@ -50,13 +52,7 @@ KISSY.add(function(S, Base, Node) {
 			})
 			$pulldown.addClass(prefix + self.get("status"));
 			$pulldown.html(self.userConfig[self.get("status") + "Content"] || self.userConfig["content"]);
-			self._bindEvt();
-		},
-		_bindEvt: function() {
-			var self = this;
-			if(self._evtBinded) return;
-			var height = self.userConfig.height || 60;
-			var reloadItv, loadingItv;
+
 			var offsetTop = 0;
 
 			xlist.on("drag", function(e) {
@@ -98,8 +94,6 @@ KISSY.add(function(S, Base, Node) {
 					}, 700);
 				}
 			})
-
-			self._evtBinded = true;
 		},
 		setContent: function(content) {
 			var self = this;

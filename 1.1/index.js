@@ -309,7 +309,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                                 row: Number(row)
                             }).innerHTML;
                         } else {
-                            item.element.innerHTML = $(Template(itemObj.template||"").render(itemObj.data)).html()
+                            item.element.innerHTML = $(Template(itemObj.template).render(itemObj.data)).html()
                         }
                     }else if (this.items.length) {
                         item = this.items.pop();
@@ -337,6 +337,7 @@ KISSY.add(function(S, N, E, Base, Template, Drag) {
                         }
                         self.__renderDomRecord[itemObj.row] = $(item.element).appendTo(self.$ctn);
                     }
+                    // item.row = row;
                     this.visibleItems[row] = item;
                     return item;
                 },

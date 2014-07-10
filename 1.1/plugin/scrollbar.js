@@ -94,9 +94,9 @@
 			})
 
 			//距离顶部
-			// self.on("*Change",function(e){
-			// 	self._update();
-			// })
+			self.on("*Change",function(e){
+				self._update();
+			})
 
 		},
 		hide:function(){
