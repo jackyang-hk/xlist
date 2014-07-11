@@ -4,7 +4,7 @@
  * @plugin scrollbar XLIST滚动条插件
  **/
 ;
-KISSY.add(function(S, Node, Base, Anim) {
+KISSY.add("gallery/xlist/1.0/plugin/scrollbar",function(S, Node, Base, Anim) {
 	var $ = S.all;
 	//最短滚动条高度
 	var MIN_SCROLLBAR_HEIGHT = 60;
@@ -85,7 +85,8 @@ KISSY.add(function(S, Node, Base, Anim) {
 				//底部回弹
 				var _top = top - containerHeight + indicateHeight;
 				if (_top * barHeight / MIN_SCROLLBAR_HEIGHT > barHeight - BAR_MIN_HEIGHT) {
-					barOffsetTop = indicateHeight - barHeight + barHeight - BAR_MIN_HEIGHT;
+					barOffsetTop = indicateHeight - BAR_MIN_HEIGHT;
+					// console.log(barOffsetTop,BAR_MIN_HEIGHT,barHeight)
 				} else {
 					barOffsetTop = indicateHeight - barHeight + _top * barHeight / MIN_SCROLLBAR_HEIGHT;
 				}

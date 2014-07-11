@@ -3,7 +3,7 @@
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @plugin pullup XLIST上拉加载插件
  **/
-;KISSY.add(function(S, Base, Node) {
+;KISSY.add("gallery/xlist/1.0/plugin/pullup",function(S, Base, Node) {
 	var $ = S.all;
 	var prefix;
 	var containerCls;

@@ -4,7 +4,7 @@
  * @plugin pulldown XLIST下拉刷新插件
  **/
 ;
-KISSY.add(function(S, Base, Node) {
+KISSY.add("gallery/xlist/1.0/plugin/pulldown",function(S, Base, Node) {
 	var $ = S.all;
 	var prefix;
 	var containerCls;
