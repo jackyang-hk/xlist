@@ -296,11 +296,11 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag) {
             var userConfig = self.userConfig;
             var itemPool = self.itemPool = {
                 items: [],
-                //visibleItems
                 visibleItems: {},
                 getItem: function(itemObj, row, visibleItem) {
                     var item;
                     if (visibleItem) {
+                        // console.log(row)
                         item = visibleItem;
                         if (S.isFunction(userConfig.renderHook)) {
                             item.element.innerHTML = userConfig.renderHook({
@@ -312,6 +312,7 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag) {
                             item.element.innerHTML = $(Template(itemObj && itemObj.template).render(itemObj.data)).html()
                         }
                     } else if (this.items.length) {
+                        
                         item = this.items.pop();
                         if (S.isFunction(userConfig.renderHook)) {
                             item.element.innerHTML = userConfig.renderHook({
@@ -323,6 +324,7 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag) {
                             item.element.innerHTML = $(Template(itemObj.template).render(itemObj.data)).html()
                         }
                     } else {
+
                         item = {
                             template: itemObj.template
                         }
@@ -491,7 +493,7 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag) {
                 }
             }
             for (var i in self.itemPool.visibleItems) {
-                self.itemPool.getItem(itemList[i], i, self.itemPool.visibleItems[i]);
+                itemList[i] && self.itemPool.getItem(itemList[i], i, self.itemPool.visibleItems[i]);
             }
             $ctn.height(self.containerHeight);
             self._bindEvt();

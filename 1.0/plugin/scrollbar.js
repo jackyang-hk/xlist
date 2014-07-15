@@ -86,7 +86,6 @@ KISSY.add("gallery/xlist/1.0/plugin/scrollbar",function(S, Node, Base, Anim) {
 				var _top = top - containerHeight + indicateHeight;
 				if (_top * barHeight / MIN_SCROLLBAR_HEIGHT > barHeight - BAR_MIN_HEIGHT) {
 					barOffsetTop = indicateHeight - BAR_MIN_HEIGHT;
-					// console.log(barOffsetTop,BAR_MIN_HEIGHT,barHeight)
 				} else {
 					barOffsetTop = indicateHeight - barHeight + _top * barHeight / MIN_SCROLLBAR_HEIGHT;
 				}
@@ -130,6 +129,7 @@ KISSY.add("gallery/xlist/1.0/plugin/scrollbar",function(S, Node, Base, Anim) {
 			self.xlist.on("scrollEnd", function(e) {
 				if (!self.isBoundryBounce && e.originType != 'tapHold') {
 					// self.hide();
+					self._moveTo(self.computeScrollBar(-self.xlist.getOffsetTop())['top']);
 				}
 			})
 
@@ -150,15 +150,15 @@ KISSY.add("gallery/xlist/1.0/plugin/scrollbar",function(S, Node, Base, Anim) {
 		},
 		hide: function() {
 			var self = this;
-			self.$indicate.css({
+			self.$scrollbar.css({
 				opacity: 0
 			});
-			self.$indicate[0].style.webkitTransition = "opacity 0.3s ease-out"
+			self.$scrollbar[0].style.webkitTransition = "opacity 0.3s ease-out"
 		},
 		show: function() {
 			var self = this;
-			self.$indicate.css({
-				opacity: 1
+			self.$scrollbar.css({
+				opacity:1
 			});
 		}
 	}, {
