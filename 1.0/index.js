@@ -300,7 +300,6 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag) {
                 getItem: function(itemObj, row, visibleItem) {
                     var item;
                     if (visibleItem) {
-                        // console.log(row)
                         item = visibleItem;
                         if (S.isFunction(userConfig.renderHook)) {
                             item.element.innerHTML = userConfig.renderHook({
@@ -339,11 +338,13 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag) {
                         }
                         self.__renderDomRecord[itemObj.row] = $(item.element).appendTo(self.$ctn);
                     }
+                    item.element.style.display = "block";
                     this.visibleItems[row] = item;
                     return item;
                 },
                 returnItem: function(item, row) {
                     delete this.visibleItems[row];
+                    item.element.style.display = "none";
                     this.items.push(item);
                 }
             }
