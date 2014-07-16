@@ -3,7 +3,7 @@
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @module xlist
  **/
-KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag) {
+KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag,Tap) {
     var $ = S.all;
     var clsPrefix,
         containerClsName,
@@ -591,6 +591,7 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag) {
                 e.preventDefault()
             }).on("tap", function(e) {
                 if (!self.isScrolling) {
+                    //模拟鼠标点击
                     self.simulateMouseEvent(e, "click");
                 }
             }).on("tap tapHold", function(e) {
@@ -678,5 +679,5 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag) {
     return XList
 
 }, {
-    requires: ["node", "event", "base", "gallery/template/1.0/", "./drag"]
+    requires: ["node", "event", "base", "gallery/template/1.0/", "./drag","./tap"]
 })
