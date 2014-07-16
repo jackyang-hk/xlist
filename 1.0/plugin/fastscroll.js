@@ -61,6 +61,7 @@ KISSY.add("gallery/xlist/1.0/plugin/fastscroll",function(S, Base, Node) {
 					self.dragRecords = [];
 				}
 			})
+			//滑动方向变化后复位
 			self.on("afterDirectionChange",function(){
 				self.reset();
 			})
@@ -70,12 +71,6 @@ KISSY.add("gallery/xlist/1.0/plugin/fastscroll",function(S, Base, Node) {
 			var self = this;
 			self.dragRecords = [];
 			self.times = 0;
-		},
-		judger:function(){
-			var self =this;
-			if(self.dragRecords.length){
-
-			}
 		}
 	}, {
 		ATTRS: {
