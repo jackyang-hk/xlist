@@ -145,7 +145,8 @@ module.exports = function(grunt) {
 							'**/*.css',
 							'!build/**/*.css',
 							'!demo/**/*.css',
-                            'plugin/*.js'
+                            'plugin/*.js',
+                            '*.js'
 						], 
 						dest: '<%= pkg.version %>/build/', 
 						filter: 'isFile'
@@ -215,7 +216,7 @@ module.exports = function(grunt) {
 
 
 	grunt.registerTask('build', '默认构建任务', function() {
-		task.run(['clean:build', 'kmc', 'copy','uglify']);
+		task.run(['clean:build', 'copy','uglify']);
 	});
 
 	// 启动Debug调试时的本地服务：grunt debug
