@@ -2,7 +2,7 @@
 	Drag Event for KISSY MINI 
 	@author xiaoqi.huxq@alibaba-inc.com
 */
-;KISSY.add("gallery/xlist/1.0/drag",function(S, Node) {
+;KISSY.add("gallery/xlist/1.0/drag",function(S, Node,Event) {
 	var doc = window.document;
 	var DRAG_START = 'gestureDragStart',
 		DRAG_END = 'gestureDragEnd',
@@ -194,5 +194,5 @@
 	};
 
 }, {
-	requires: ['node']
+	requires: ['node','event']
 });

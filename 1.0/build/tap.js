@@ -1,4 +1,4 @@
-;KISSY.add("gallery/xlist/1.0/tap",function(S,Node) {
+;KISSY.add("gallery/xlist/1.0/tap",function(S,Node,Event) {
 
         var $ = S.all;
     // Tap
@@ -175,4 +175,4 @@
             };
         });
 
-},{requires:['node']});
+},{requires:['node','event']});
