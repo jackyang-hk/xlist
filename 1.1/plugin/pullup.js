@@ -3,7 +3,7 @@
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @plugin pullup XLIST上拉加载插件
  **/
-;KISSY.add(function(S, Base, Node) {
+;KISSY.add("gallery/xlist/1.1/plugin/pullup",function(S, Base, Node) {
 	var $ = S.all;
 	var prefix;
 	var containerCls;
@@ -13,7 +13,6 @@
 	var PullUp = Base.extend({
 		initializer: function() {
 			var self = this;
-			console.log(self.userConfig)
 			var xlist = self.userConfig.xlist;
 			self.userConfig = S.merge({
 				content: content,
@@ -29,7 +28,7 @@
 			// xlist.userConfig.boundry.bottom = height;
 			xlist.on("afterRender",function(){
 				self.render()
-				self.__bindEvt();
+				self._bindEvt();
 			})
 
 			
@@ -48,19 +47,20 @@
 			}).prependTo(xlist.$ctn);
 			self.fire("afterRender");
 		},
-		__bindEvt:function(){
+		_bindEvt:function(){
 			var self =this;
+			if(self._evtBinded) return;
 			var xlist= self.userConfig.xlist;
 			var $pullup = self.$pullup;
+			var offsetTop = 0;
 
 			self.on("afterStatusChange", function(e) {
 				$pullup.removeClass(prefix + e.prevVal).addClass(prefix + e.newVal);
 				self.setContent(self.userConfig[e.newVal + "Content"]);
 			})
+			
 			$pullup.addClass(prefix + self.get("status"));
 			$pullup.html(self.userConfig[self.get("status") + "Content"] || self.userConfig["content"]);
-
-			var offsetTop = 0;
 
 			xlist.on("drag", function(e) {
 				offsetTop = xlist.getOffsetTop();
@@ -85,6 +85,8 @@
 			xlist.on("dataChange", function() {
 				self.set("status","up")
 			})
+
+			self._evtBinded = true;
 
 		},
 		setContent: function(content) {

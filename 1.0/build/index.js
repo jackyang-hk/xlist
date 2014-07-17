@@ -3,7 +3,7 @@
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @module xlist
  **/
-KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag,Tap) {
+;KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag,Tap) {
     var $ = S.all;
     var clsPrefix,
         containerClsName,
@@ -23,6 +23,8 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag,Tap) 
     var BOUNDRY_CHECK_DURATION = 0.4;
     var BOUNDRY_CHECK_EASING = "ease-in-out";
     var BOUNDRY_CHECK_ACCELERATION = 0.1;
+    //reduced boundry drag distance
+    var BOUNDRY_DRAG_RATE = 0.36;
 
     /*
         vendors
@@ -618,10 +620,10 @@ KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag,Tap) 
                 if (e.changedTouches.length > 1) return;
                 var pos = Number(startPos) + e.deltaY;
                 if (pos > 0) { //overtop 
-                    pos = pos / 2;
+                    pos = pos * BOUNDRY_DRAG_RATE;
                 }
                 if (pos < self.height - self.containerHeight) { //overbottom 
-                    pos = pos + (self.height - self.containerHeight - pos) / 2;
+                    pos = pos + (self.height - self.containerHeight - pos)  * BOUNDRY_DRAG_RATE;
                 }
                 self.translateY(container, pos.toFixed(0));
                 container.style[transition] = "";

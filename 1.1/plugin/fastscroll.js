@@ -4,7 +4,7 @@
  * @plugin fastscroll 加速滚动
  **/
 ;
-KISSY.add("gallery/xlist/1.0/plugin/fastscroll",function(S, Base, Node) {
+KISSY.add("gallery/xlist/1.1/plugin/fastscroll",function(S, Base, Node) {
 	var $ = S.all;
 	//最小的滑动速度
 	var MIN_DRAG_VELOCITY = 1;

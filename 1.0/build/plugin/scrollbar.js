@@ -40,8 +40,6 @@ KISSY.add("gallery/xlist/1.0/plugin/scrollbar",function(S, Node, Base, Anim) {
 				overflow: "hidden",
 				"-webkit-border-radius": "2px"
 			}).prependTo(xlist.$renderTo);
-			//scrollbar容器高度
-			self.set("barWrapperHeight", self.$scrollbar.height() || 0);
 
 			var tpl_indicate = '<div></div>';
 
@@ -69,11 +67,10 @@ KISSY.add("gallery/xlist/1.0/plugin/scrollbar",function(S, Node, Base, Anim) {
 			//滚动条容器高度
 			var indicateHeight = self.get("indicateHeight");
 			var containerHeight = self.get("containerHeight");
-			var barWrapperHeight = self.get("barWrapperHeight");
 			var ratio = top / containerHeight;
-			var barOffsetTop = barWrapperHeight * ratio;
-			var barHeight = barWrapperHeight * indicateHeight / containerHeight;
-			var _barOffsetTop = barOffsetTop * (barWrapperHeight - MIN_SCROLLBAR_HEIGHT + barHeight) / barWrapperHeight
+			var barOffsetTop = indicateHeight * ratio;
+			var barHeight = indicateHeight * indicateHeight / containerHeight;
+			var _barOffsetTop = barOffsetTop * (indicateHeight - MIN_SCROLLBAR_HEIGHT + barHeight) / indicateHeight
 			if (barHeight < MIN_SCROLLBAR_HEIGHT) {
 				barHeight = MIN_SCROLLBAR_HEIGHT;
 				barOffsetTop = _barOffsetTop;
@@ -173,10 +170,6 @@ KISSY.add("gallery/xlist/1.0/plugin/scrollbar",function(S, Node, Base, Anim) {
 			},
 			//视窗高度
 			"indicateHeight": {
-				value: 0
-			},
-			//滚动条容器高度 = 视窗高度 - 上下空隙
-			"barWrapperHeight": {
 				value: 0
 			},
 			//滚动条高度
