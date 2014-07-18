@@ -27,7 +27,7 @@
             tag:Math.random()
         }]
     })
-S.use('node,gallery/xlist/1.1/index,gallery/xlist/1.1/plugin/scrollbar,gallery/xlist/1.1/plugin/fastscroll', function(S,Node, XList,ScrollBarPlugin,FastScrollPlugin) {
+S.use('node,gallery/xlist/1.1/index,gallery/xlist/1.1/plugin/scrollbar,gallery/xlist/1.1/plugin/fastscroll,gallery/xlist/1.1/plugin/console', function(S,Node, XList,ScrollBarPlugin,FastScrollPlugin,ConsolePlugin) {
     var $ = S.all
     var data = (function() {
         var tmp = [];
@@ -39,6 +39,7 @@ S.use('node,gallery/xlist/1.1/index,gallery/xlist/1.1/plugin/scrollbar,gallery/x
         return tmp
     })()
     var list = new XList({
+        autoRender:false,
         renderTo: "#J_List",
         data: data,
         template: '<li class="row">Row {{num}}</li>',
@@ -49,9 +50,17 @@ S.use('node,gallery/xlist/1.1/index,gallery/xlist/1.1/plugin/scrollbar,gallery/x
         xlist: xlist
     }));
 
-    xlist.plug(new FastScrollPlugin({
+    xlist.plug(new ConsolePlugin({
         xlist:xlist
     }))
+
+    xlist.on("scroll",function(e){
+        // console.log(e.offsetTop)
+    })
+
+    // xlist.plug(new FastScrollPlugin({
+    //     xlist:xlist
+    // }))
 
     xlist.render()
 })

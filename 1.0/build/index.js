@@ -190,8 +190,7 @@
             var height = self.height;
             var userConfig = self.userConfig;
             var itemHeight = self.userConfig.itemHeight;
-            var maxBufferedNum = userConfig.maxBufferedNum || Math.ceil(self.height / itemHeight);
-            maxBufferedNum = 0;
+            var maxBufferedNum = userConfig.maxBufferedNum >= 0 ?  userConfig.maxBufferedNum : 0;
             var posTop = offsetTop - maxBufferedNum * itemHeight;
             if (posTop < 0) {
                 posTop = 0;

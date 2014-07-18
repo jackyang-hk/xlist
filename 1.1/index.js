@@ -63,6 +63,14 @@
             [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
         ];
     }
+
+    var RAF = window.requestAnimationFrame  ||
+    window.webkitRequestAnimationFrame  ||
+    window.mozRequestAnimationFrame     ||
+    window.oRequestAnimationFrame       ||
+    window.msRequestAnimationFrame      ||
+    function (callback) { window.setTimeout(callback, 1000 / 60); };
+
     /**
         * constructor for XList
         * @param renderTo {String|KISSY.Node} root element
@@ -84,8 +92,7 @@
                 data: [],
                 translate3D: false,
                 autoRender: true,
-                itemHeight: 30,
-                useTransition: true
+                itemHeight: 30
             }, self.userConfig, undefined, undefined, true);
             self.$renderTo = $(userConfig.renderTo).css({
                 overflowY: "hidden"
@@ -190,8 +197,8 @@
             var height = self.height;
             var userConfig = self.userConfig;
             var itemHeight = self.userConfig.itemHeight;
-            var maxBufferedNum = userConfig.maxBufferedNum || Math.ceil(self.height / itemHeight);
-            maxBufferedNum = 0;
+            var maxBufferedNum = userConfig.maxBufferedNum || Math.ceil(self.height / itemHeight/3);
+            // maxBufferedNum = 0;
             var posTop = offsetTop - maxBufferedNum * itemHeight;
             if (posTop < 0) {
                 posTop = 0;
@@ -212,12 +219,7 @@
          * @return offsetTop{Number}
          **/
         getOffsetTop: function() {
-            var self = this;
-            if (self.$ctn && self.$ctn[0]) {
-                return Number(window.getComputedStyle(self.$ctn[0])[transform].match(/[-\d]+/g)[5])
-            } else {
-                return 0;
-            }
+            return Number(window.getComputedStyle(this.$ctn[0])[transform].match(/[-\d]+/g)[5])
         },
         getVisibleItems: function() {
             var self = this;
@@ -246,46 +248,6 @@
                 if (i == key) return true;
             }
             return false;
-        },
-        /**
-         * async update data and render doms inside of view
-         **/
-        update: function() {
-            var self = this;
-            clearInterval(self.updateItv)
-            var userConfig = self.userConfig;
-            var container = self.$ctn[0];
-            var itemPool = self.itemPool;
-            var itemHeight = userConfig.itemHeight;
-            var height = self.height;
-            var offset = -self.getOffsetTop();
-            var itemList = self.getItemObj(offset, height, self.domInfo);
-            for (var i in itemList) {
-                var item = null;
-                if (!self.visibleIndex[i] && itemList[i]['type'] != 2) {
-                    item = itemPool.getItem(itemList[i], i);
-                    item.element.style.position = "absolute";
-                    item.element.style.height = itemList[i]['height'] + "px";
-                    self.translateY(item.element, itemList[i]['top']);
-                    self.visibleIndex[i] = item;
-                    self.update();
-                    break;
-                }
-            }
-            for (var i in self.visibleIndex) {
-                if (!self.hasKey(itemList, i)) {
-                    itemPool.returnItem(self.visibleIndex[i], i);
-                    delete self.visibleIndex[i];
-                }
-            }
-            if (self.isScrolling) {
-                self.updateItv = setTimeout(function() {
-                    self.update();
-                    self.fire(SCROLL, {
-                        offsetTop: -offset
-                    })
-                }, 0);
-            }
         },
         /**
          * init element-pool for recyclely used
@@ -375,7 +337,8 @@
         scrollTo: function(offset, duration, easing) {
             var self = this;
             var duration = duration || 20;
-            if (self.getOffsetTop() == (-offset).toFixed(0)) {
+            var offsetTop = self.getOffsetTop();
+            if (offsetTop == (-offset).toFixed(0)) {
                 return;
             }
             if (duration > 1) {
@@ -384,12 +347,10 @@
             var container = self.$ctn[0];
             self.translateY(container, (-offset).toFixed(0));
             var transitionStr = "";
-            if (self.userConfig.useTransition) {
                 transitionStr = ["-", vendor, "-transform ", duration, "s ", easing, " 0s"].join("");
                 container.style[transition] = transitionStr;
-            }
             self.isScrolling = true;
-            self.update();
+            self._update(offsetTop);
             self.fire("scrollTo", {
                 transition: transitionStr,
                 offsetTop: offset,
@@ -420,7 +381,7 @@
             if (pos < height - self.containerHeight) {
                 self.scrollTo(self.containerHeight - height, BOUNDRY_CHECK_DURATION, BOUNDRY_CHECK_EASING);
             }
-            self.update();
+            self._update();
         },
         _createContainer: function() {
             var self = this;
@@ -476,7 +437,6 @@
             var $renderTo = self.$renderTo;
             var $ctn = self.$ctn;
             var container = $ctn[0];
-            var itemList = self.getItemObj(-self.getOffsetTop(), height, self.domInfo);
             self.containerHeight = (lastItem && lastItem['top']) ? lastItem['top'] + lastItem['height'] : self.height;
             if (self.containerHeight < self.height) {
                 self.containerHeight = self.height;
@@ -495,13 +455,10 @@
                     self.__stickiesRecord[self.domInfo[i]['row']] = itemNode;
                 }
             }
-            for (var i in self.itemPool.visibleItems) {
-                itemList[i] && self.itemPool.getItem(itemList[i], i, self.itemPool.visibleItems[i]);
-            }
             $ctn.height(self.containerHeight);
             self._bindEvt();
-            self.update();
-            self.fire(SYNC)
+            self._update();
+            self.fire(SYNC);
         },
         //simulateMouseEvent
         simulateMouseEvent: function(event, type) {
@@ -527,7 +484,7 @@
                     offsetTop: self.getOffsetTop()
                 })
                 self._boundryCheck();
-                self.update();
+                self._update();
                 return;
             } else {
                 var height = self.height;
@@ -571,7 +528,7 @@
                     self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
                 }
                 self.isScrolling = true;
-                self.update();
+                self._update();
             }
 
 
@@ -628,11 +585,8 @@
                 self.translateY(container, pos.toFixed(0));
                 container.style[transition] = "";
                 self.isScrolling = false;
-                self.update();
+                self._update();
                 self.fire(DRAG);
-                self.fire(SCROLL, {
-                    offsetTop: Number(pos.toFixed(0))
-                })
             }).on(Drag.DRAG_END, function(e) {
                 self.dragEndHandler(e)
                 self.fire(DRAG_END, {

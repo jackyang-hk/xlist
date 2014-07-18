@@ -199,10 +199,12 @@ S.use('node,ajax,gallery/xlist/1.0/,gallery/xlist/1.0/plugin/scrollbar,gallery/x
     //实例化
     list = new XList({
         renderTo: "#J_List",
+        maxBufferedNum:1,
         autoRender:false,
         template: $("#J_Tpl").html(),
         itemHeight: 107 //行高
     })
+    window.xlist = list;
     //滚动条
     list.plug(new ScrollBar({
         xlist:list
