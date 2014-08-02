@@ -1,6 +1,6 @@
 module.exports = function(grunt) {
-    var task = grunt.task;
-    var SRC = 'src/';
+	var task = grunt.task;
+    var SRC = './';
     grunt.initConfig({
         // 配置文件，参考package.json配置方式，必须设置项是
         // name, version, author
@@ -14,7 +14,7 @@ module.exports = function(grunt) {
         clean: {
             build: {
                 src: './build/*'
-            }
+			}
         },
         // kmc打包任务，默认情况，入口文件是index.js，可以自行添加入口文件，在files下面
         // 添加
@@ -28,14 +28,14 @@ module.exports = function(grunt) {
                 ],
                 depFilePath: 'mods.js',
                 fixModuleName:true,
-                map: [["<%= pkg.name %>/src/", "kg/<%= pkg.name %>/<%= pkg.version %>/"]]
+                map: [["<%= pkg.name %>/", "kg/<%= pkg.name %>/<%= pkg.version %>/"]]
             },
             main: {
                 files: [
                     {
                         expand: true,
                         cwd: SRC,
-                        src: [ './*.js','./plugin/*.js' ],
+                        src: [ './*.js','!./Gruntfile.js' ],
                         dest: 'build/'
                     }
                 ]
@@ -77,44 +77,46 @@ module.exports = function(grunt) {
                 files: [
                     {
                         expand: true,
-                        cwd:SRC,
+						cwd:SRC,
                         src: ['**/*.less',
-                            '!build/**/*.less',   
-                            '!demo/**/*.less'],
+                            '!node_modules/**/*.less',
+							'!build/**/*.less',   
+							'!demo/**/*.less'],
                         dest: './build/',
-                        ext: '.less.css'
+                        ext: '.css'
                     }
                 ]
             }
         },
-        // 拷贝 CSS 文件
-        copy : {
-            main: {
-                files:[
-                    {
-                        expand:true,
-                        cwd:SRC,
-                        src: [
-                            '**/*.css',
-                            '!build/**/*.css',
-                            '!demo/**/*.css'
-                        ], 
-                        dest: './build/', 
-                        filter: 'isFile'
-                    }
-                ]
-            }
-        },
-        // 监听JS、CSS、LESS文件的修改
+		// 拷贝 CSS 文件
+		copy : {
+			main: {
+				files:[
+					{
+						expand:true,
+						cwd:SRC,
+						src: [
+							'**/*.css',
+                            '!node_modules/**/*.css',
+							'!build/**/*.css',
+							'!demo/**/*.css'
+						], 
+						dest: './build/', 
+						filter: 'isFile'
+					}
+				]
+			}
+		},
+		// 监听JS、CSS、LESS文件的修改
         watch: {
             'all': {
                 files: [
-                    './src/**/*.css',
-                    '!./build/**/*'
-                ],
+					'./src/**/*.css',
+					'!./build/**/*'
+				],
                 tasks: [ 'build' ]
             }
-        },
+		},
         cssmin: {
             scss: {
                 files: [
@@ -158,17 +160,17 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-copy');
+	grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-less');
 
 
-    grunt.registerTask('build', '默认构建任务', function() {
-        task.run(['clean:build', 'kmc','uglify', 'copy','less','cssmin']);
-    });
+	grunt.registerTask('build', '默认构建任务', function() {
+		task.run(['clean:build', 'kmc','uglify', 'copy','less','cssmin']);
+	});
 
     return grunt.registerTask('default', '',function(type){
-        if (!type) {
-            task.run(['build']);
-        }
-    });
+		if (!type) {
+			task.run(['build']);
+		}
+	});
 };

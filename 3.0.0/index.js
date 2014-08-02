@@ -3,7 +3,7 @@
  * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
  * @module xlist
  **/
-;KISSY.add("kg/xlist/2.0.0/index",function(S, N, E, Base, Template, Drag,Tap) {
+;KISSY.add("gallery/xlist/1.0/index",function(S, N, E, Base, Template, Drag,Tap) {
     var $ = S.all;
     var clsPrefix,
         containerClsName,
@@ -378,7 +378,7 @@
                 return;
             }
             if (duration > 1) {
-                duration = duration / 2.0.00;
+                duration = duration / 1000;
             }
             var container = self.$ctn[0];
             self.translateY(container, (-offset).toFixed(0));
@@ -436,7 +436,7 @@
                 $renderTo[0].appendChild(container);
             }
             container.style.background = "#fff";
-            container.style.width = "2.0.0%";
+            container.style.width = "100%";
             container.style.position = "relative";
             container.style['z-index'] = 1;
             self.translateY(container, 0);
@@ -485,7 +485,7 @@
                 if (self.domInfo[i]['type'] == 2 && !self.__stickiesRecord[self.domInfo[i]['row']]) {
                     var itemNode = document.createElement("div");
                     itemNode.style.top = 0;
-                    itemNode.style.width = "2.0.0%";
+                    itemNode.style.width = "100%";
                     itemNode.style.height = self.domInfo[i]['height'];
                     itemNode.style.position = 'absolute';
                     self.translateY(itemNode, self.domInfo[i]['top']);
@@ -680,5 +680,5 @@
     return XList
 
 }, {
-    requires: ["node", "event", "base", "kg/template/2.0.0/", "./drag","./tap"]
+    requires: ["node", "event", "base", "gallery/template/1.0/", "./drag","./tap"]
 })

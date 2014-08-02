@@ -51,11 +51,7 @@ body {
     text-align: center;
 }
 
-<<<<<<< HEAD
-#J_Scroll {
-=======
 #J_List {
->>>>>>> 81e88ffc49535f33dae933df4eb3a1a02308882a
     position: absolute;
     z-index: 1;
     top: 45px;
@@ -65,14 +61,6 @@ body {
     background: #ccc;
     overflow: hidden;
 }
-<<<<<<< HEAD
-#J_Scroll ul{
-    /*position: absolute;*/
-}
-#J_Scroll li{
-    padding: 0 10px;
-
-=======
 
 .ks-xlist-container {
     position: absolute;
@@ -111,18 +99,12 @@ body {
     -o-transform: translateZ(0);
     transform: translateZ(0);
     padding: 0 10px;
->>>>>>> 81e88ffc49535f33dae933df4eb3a1a02308882a
     height: 40px;
     line-height: 40px;
     border-bottom: 1px solid #ccc;
     border-top: 1px solid #fff;
     background-color: #fafafa;
     font-size: 16px;
-<<<<<<< HEAD
-    display: block;
-    list-style: none;
-}
-=======
 }
 
 .ks-xlist-plugin-pulldown-container{
@@ -147,4 +129,3 @@ body {
         line-height: 60px;
         text-align: center;
 }
->>>>>>> 81e88ffc49535f33dae933df4eb3a1a02308882a
