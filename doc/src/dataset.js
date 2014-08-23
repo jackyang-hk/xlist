@@ -1,10 +1,4 @@
-/*
-combined files : 
-
-kg/xlist/3.0.0/dataset
-
-*/
-;KISSY.add('kg/xlist/3.0.0/dataset',function(S){
+;KISSY.add(function(S){
 /*
 	var ds = new Xlist.DataSet({
 	   id:””,
