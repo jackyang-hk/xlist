@@ -1,341 +1,684 @@
-/*
-combined files : 
+/**
+ * @fileoverview
+ * @author 伯才<xiaoqi.huxq@alibaba-inc.com>
+ * @module xlist
+ **/
+;KISSY.add("kg/xlist/2.0.0/index",function(S, N, E, Base, Template, Drag,Tap) {
+    var $ = S.all;
+    var clsPrefix,
+        containerClsName,
+        containerClsReg;
+    //event names
+    var SCROLL_END = "scrollEnd";
+    var SCROLL = "scroll";
+    var DRAG_END = "dragEnd";
+    var DRAG_START = "dragStart";
+    var DRAG = "drag";
+    var AFTER_RENDER = "afterRender";
+    var SYNC = "sync";
+    //constant acceleration for scrolling
+    var SROLL_ACCELERATION = 0.002;
 
-kg/xlist/3.0.0/dataset
-kg/xlist/3.0.0/index
+    //boundry checked bounce effect
+    var BOUNDRY_CHECK_DURATION = 0.4;
+    var BOUNDRY_CHECK_EASING = "ease-in-out";
+    var BOUNDRY_CHECK_ACCELERATION = 0.1;
+    //reduced boundry drag distance
+    var BOUNDRY_DRAG_RATE = 0.36;
 
-*/
-;KISSY.add('kg/xlist/3.0.0/dataset',function(S){
-/*
-	var ds = new Xlist.DataSet({
-	   id:””,
-	   data:[]
-	});
+    /*
+        vendors
+        @example webkit|moz|ms|O 
+    */
+    var vendor = (function() {
+        var el = document.createElement('div').style;
+        var vendors = ['t', 'webkitT', 'MozT', 'msT', 'OT'],
+            transform,
+            i = 0,
+            l = vendors.length;
+        for (; i < l; i++) {
+            transform = vendors[i] + 'ransform';
+            if (transform in el) return vendors[i].substr(0, vendors[i].length - 1);
+        }
+        return false;
+    })();
 
-	ds.appendData([{},{}]);
+    //transform
+    var transform = prefixStyle("transform");
+    //transition webkitTransition MozTransition OTransition msTtransition
+    var transition = prefixStyle("transition");
+    /**
+     *  attrs with vendor
+     *  @return { String }
+     **/
+    function prefixStyle(style) {
+        if (vendor === false) return false;
+        if (vendor === '') return style;
+        return vendor + style.charAt(0).toUpperCase() + style.substr(1);
+    }
 
-	ds.removeData();
+    function quadratic2cubicBezier(a, b) {
+        return [
+            [(a / 3 + (a + b) / 3 - a) / (b - a), (a * a / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)],
+            [(b / 3 + (a + b) / 3 - a) / (b - a), (b * b / 3 + a * b * 2 / 3 - a * a) / (b * b - a * a)]
+        ];
+    }
+    /**
+        * constructor for XList
+        * @param renderTo {String|KISSY.Node} root element
+        * @param data {Array} data for initial
+        * @param autoRender {Boolean} choose if render automatically
+        * @param itemHeight {Number} height for each row
+        * @param translate3D {Boolean} choose if use 3D translate to animate
+        * @param clsPrefix {String} prefix for className
+        * @param stickies {Object} sticky element with three types : 
+            1.normal item 
+            2.sticky with no dom-recycling 
+            3.sticky with dom-recycling
+        * @param SROLL_ACCELERATION {Float} acceleration for scrolling
+        **/
+    var XList = Base.extend({
+        initializer: function() {
+            var self = this;
+            var userConfig = self.userConfig = S.mix({
+                data: [],
+                translate3D: false,
+                autoRender: true,
+                itemHeight: 30,
+                useTransition: true
+            }, self.userConfig, undefined, undefined, true);
+            self.$renderTo = $(userConfig.renderTo).css({
+                overflowY: "hidden"
+            });
+            window.xlist = self;
 
-	ds.getId()
+            clsPrefix = userConfig.clsPrefix || "ks-xlist-";
 
-	ds.getData()
-*/
+            self.SROLL_ACCELERATION = userConfig.SROLL_ACCELERATION || SROLL_ACCELERATION;
 
-	var DataSet = function(cfg){
+            containerClsName = clsPrefix + "container";
 
-		this.data = cfg && cfg.data || [];
+            containerClsReg = new RegExp(containerClsName);
 
-		this.id = cfg && cfg.id || "_ds_"+Date.now();
+            var height = self.height = userConfig.height || self.$renderTo.height();
 
-	}
+            self.visibleIndex = {};
 
-	DataSet.prototype.appendData = function(data){
-		this.data = this.data.concat(data)
-	};
+            self.__stickiesRecord = {};
 
-	DataSet.prototype.removeData = function(){
-		this.data = [];
-	};
+            self.__boundryCheckEnabled = true;
 
-	DataSet.prototype.getData = function(){
-		return this.data;
-	};
+            self.initItemPool();
 
-	DataSet.prototype.setId = function(id){
-		if(!id) return;
-		this.id = id;
-		return this.id;
-	};
+            userConfig.autoRender && self.render();
 
-	DataSet.prototype.getId = function(){
-		return this.id;
-	};
+        },
+        //translate a element vertically
+        translateY: function(el, y) {
+            var self = this;
+            el.style[transform] = "translate(0," + y + "px) translateZ(0)";
+            return;
+        },
+        //remove data
+        removeData: function() {
+            var self = this;
+            self.userConfig.data = [];
+        },
+        //append new data
+        setData: function(data) {
+            var self = this;
+            for (var i = 0, len = data.length; i < len; i++) {
+                self.userConfig.data.push(data[i]);
+            }
+        },
+        /**
+         * get all element posInfo such as top,height,template,html
+         * @return {Array}
+         **/
+        getDomInfo: function() {
+            var self = this;
+            var userConfig = self.userConfig;
+            var stickies = userConfig.stickies || {};
+            var data = userConfig.data;
+            var itemHeight = userConfig.itemHeight;
+            var offsetTop = 0;
+            var domInfo = [];
+            var len = (function() {
+                var l = 0;
+                for (var i in stickies) {
+                    l++;
+                }
+                return data.length + l;
+            })()
+            var height = 0,
+                ignoreUsed = 0;
+            for (var i = 0; i < len; i++) {
+                var item = {};
+                if (i in stickies) {
+                    ignoreUsed++;
+                    height = stickies[i]['height'];
+                    //copy attrs
+                    for (var j in stickies[i]) {
+                        if (i != 'type' && i != 'template') {
+                            item[j] = stickies[i][j];
+                        }
+                    }
+                    item.type = stickies[i]['type'] || 2;
+                    item.template = stickies[i]['template'] || "";
+                } else {
+                    height = itemHeight;
+                    item.data = data[i - ignoreUsed];
+                    item.template = userConfig.template;
+                    item.type = 1;
+                }
+                item.row = i;
+                item.top = offsetTop;
+                item.height = height;
+                domInfo.push(item);
+                offsetTop += height;
+            }
+            self.domInfo = domInfo;
+            return domInfo;
+        },
+        /**
+         * get datas in visible area
+         * @return {Object}
+         **/
+        getItemObj: function(offsetTop, height, data) {
+            var self = this;
+            var velocityY = self.velocityY || 0;
+            var height = self.height;
+            var userConfig = self.userConfig;
+            var itemHeight = self.userConfig.itemHeight;
+            var maxBufferedNum = userConfig.maxBufferedNum >= 0 ?  userConfig.maxBufferedNum : 0;
+            var posTop = offsetTop - maxBufferedNum * itemHeight;
+            if (posTop < 0) {
+                posTop = 0;
+            }
+            var tmp = {},
+                item;
+            for (var i = 0, len = data.length; i < len; i++) {
+                item = data[i];
+
+                if (item['top'] >= posTop - itemHeight && item['top'] <= posTop + 2 * maxBufferedNum * itemHeight + height) {
+                    tmp[item['row']] = item
+                }
+            }
+            return tmp
+        },
+        /**
+         * get container offsetTop
+         * @return offsetTop{Number}
+         **/
+        getOffsetTop: function() {
+            var self = this;
+            if (self.$ctn && self.$ctn[0]) {
+                return Number(window.getComputedStyle(self.$ctn[0])[transform].match(/[-\d]+/g)[5])
+            } else {
+                return 0;
+            }
+        },
+        getVisibleItems: function() {
+            var self = this;
+            var tmp = {};
+            for (var i in self.visibleIndex) {
+                tmp[i] = self.domInfo[i];
+            }
+            return tmp;
+        },
+        //clear doms
+        clear: function() {
+            var self = this;
+            for (var i in self.__renderDomRecord) {
+                self.__renderDomRecord[i].remove()
+            }
+            self.visibleIndex = {}
+            self.__stickiesRecord = {}
+        },
+        /**
+         * judge object has key
+         * @example hasKey({a:1},"a") => true
+         * @return {Boolean}
+         **/
+        hasKey: function(obj, key) {
+            for (var i in obj) {
+                if (i == key) return true;
+            }
+            return false;
+        },
+        /**
+         * async update data and render doms inside of view
+         **/
+        update: function() {
+            var self = this;
+            clearInterval(self.updateItv)
+            var userConfig = self.userConfig;
+            var container = self.$ctn[0];
+            var itemPool = self.itemPool;
+            var itemHeight = userConfig.itemHeight;
+            var height = self.height;
+            var offset = -self.getOffsetTop();
+            var itemList = self.getItemObj(offset, height, self.domInfo);
+            for (var i in itemList) {
+                var item = null;
+                if (!self.visibleIndex[i] && itemList[i]['type'] != 2) {
+                    item = itemPool.getItem(itemList[i], i);
+                    item.element.style.position = "absolute";
+                    item.element.style.height = itemList[i]['height'] + "px";
+                    self.translateY(item.element, itemList[i]['top']);
+                    self.visibleIndex[i] = item;
+                    self.update();
+                    break;
+                }
+            }
+            for (var i in self.visibleIndex) {
+                if (!self.hasKey(itemList, i)) {
+                    itemPool.returnItem(self.visibleIndex[i], i);
+                    delete self.visibleIndex[i];
+                }
+            }
+            if (self.isScrolling) {
+                self.updateItv = setTimeout(function() {
+                    self.update();
+                    self.fire(SCROLL, {
+                        offsetTop: -offset
+                    })
+                }, 0);
+            }
+        },
+        /**
+         * init element-pool for recyclely used
+         * @param getItem {Function} get element from pool
+         * @param setItem {Function} recycle element into pool
+         **/
+        initItemPool: function() {
+            var self = this;
+            self.__renderDomRecord = {};
+            var userConfig = self.userConfig;
+            var itemPool = self.itemPool = {
+                items: [],
+                visibleItems: {},
+                getItem: function(itemObj, row, visibleItem) {
+                    var item;
+                    if (visibleItem) {
+                        item = visibleItem;
+                        if (S.isFunction(userConfig.renderHook)) {
+                            item.element.innerHTML = userConfig.renderHook({
+                                item: item,
+                                data: itemObj['data'],
+                                row: Number(row)
+                            }).innerHTML;
+                        } else {
+                            item.element.innerHTML = $(Template(itemObj && itemObj.template).render(itemObj.data)).html()
+                        }
+                    } else if (this.items.length) {
+                        
+                        item = this.items.pop();
+                        if (S.isFunction(userConfig.renderHook)) {
+                            item.element.innerHTML = userConfig.renderHook({
+                                item: item,
+                                data: itemObj['data'],
+                                row: Number(row)
+                            }).innerHTML;
+                        } else {
+                            item.element.innerHTML = $(Template(itemObj.template).render(itemObj.data)).html()
+                        }
+                    } else {
+
+                        item = {
+                            template: itemObj.template
+                        }
+                        if (S.isFunction(userConfig.renderHook)) {
+                            item.element = userConfig.renderHook({
+                                item: item,
+                                data: itemObj.data,
+                                row: Number(row)
+                            });
+                        } else {
+                            item.element = $(Template(itemObj.template).render(itemObj.data))[0]
+                        }
+                        self.__renderDomRecord[itemObj.row] = $(item.element).appendTo(self.$ctn);
+                    }
+                    item.element.style.display = "block";
+                    this.visibleItems[row] = item;
+                    return item;
+                },
+                returnItem: function(item, row) {
+                    delete this.visibleItems[row];
+                    item.element.style.display = "none";
+                    this.items.push(item);
+                }
+            }
+        },
+        /**
+         * enable the switch for boundry back bounce
+         **/
+        enableBoundryCheck: function() {
+            var self = this;
+            self.__boundryCheckEnabled = true;
+            self._boundryCheck();
+        },
+        /**
+         * disable the switch for boundry back bounce
+         **/
+        disableBoundryCheck: function() {
+            var self = this;
+            self.__boundryCheckEnabled = false;
+        },
+        /**
+         * scroll the root element with an animate
+         * @param offset {Number} scrollTop
+         * @param duration {Number} duration for animte
+         * @param easing {Number} easing functio for animate : ease-in | ease-in-out | ease | bezier
+         **/
+        scrollTo: function(offset, duration, easing) {
+            var self = this;
+            var duration = duration || 20;
+            if (self.getOffsetTop() == (-offset).toFixed(0)) {
+                return;
+            }
+            if (duration > 1) {
+                duration = duration / 2.0.00;
+            }
+            var container = self.$ctn[0];
+            self.translateY(container, (-offset).toFixed(0));
+            var transitionStr = "";
+            if (self.userConfig.useTransition) {
+                transitionStr = ["-", vendor, "-transform ", duration, "s ", easing, " 0s"].join("");
+                container.style[transition] = transitionStr;
+            }
+            self.isScrolling = true;
+            self.update();
+            self.fire("scrollTo", {
+                transition: transitionStr,
+                offsetTop: offset,
+                duration: duration,
+                easing: easing
+            })
+        },
+        /**
+         * scroll relative
+         * @param offset {Number} scrollTop
+         * @param duration {Number} duration for animte
+         * @param easing {Number} easing functio for animate : ease-in | ease-in-out | ease | bezier
+         **/
+        scrollBy: function(offset, duration, easing) {
+            var self = this;
+            var offsetTop = self.getOffsetTop();
+            self.scrollTo(Number(offsetTop) + Number(offset), duration, easing);
+        },
+        //boundry back bounce
+        _boundryCheck: function() {
+            var self = this;
+            if (!self.__boundryCheckEnabled) return;
+            var pos = self.getOffsetTop();
+            var height = self.height;
+            if (pos > 0) {
+                self.scrollTo(0, BOUNDRY_CHECK_DURATION, BOUNDRY_CHECK_EASING);
+            }
+            if (pos < height - self.containerHeight) {
+                self.scrollTo(self.containerHeight - height, BOUNDRY_CHECK_DURATION, BOUNDRY_CHECK_EASING);
+            }
+            self.update();
+        },
+        _createContainer: function() {
+            var self = this;
+            if (self.__isContainerCreated) return;
+
+            var container;
+            var $renderTo = self.$renderTo;
+            //support sync rendering
+            if ($("." + containerClsName, self.$renderTo)[0]) {
+                container = $("." + containerClsName, self.$renderTo)[0];
+            } else {
+                container = document.createElement("div");
+                container.className = containerClsName;
+                $renderTo[0].appendChild(container);
+            }
+            container.style.background = "#fff";
+            container.style.width = "2.0.0%";
+            container.style.position = "relative";
+            container.style['z-index'] = 1;
+            self.translateY(container, 0);
+            self.$ctn = $(container);
+            self.__isContainerCreated = true;
+            self.fire(AFTER_RENDER);
+        },
+        //update height & render
+        sync: function() {
+            this.render();
+        },
+        isInSideOfBoundry: function() {
+            var self = this;
+            var pos = self.getOffsetTop();
+            var height = self.height;
+            return pos <= 0 && pos >= height - self.containerHeight
+        },
+        //judge inside of viewport
+        isVisible: function(top) {
+            var self = this;
+            var _top = top + self.getOffsetTop();
+            return (_top >= 0 && _top <= self.height) ? true : false;
+        },
+        /*
+        TODO render
+        @param force {boolean} rerender visible dom forcely
+        */
+        render: function(force) {
+            var self = this;
+            self.getDomInfo();
+            self._createContainer();
+            var userConfig = self.userConfig;
+            var height = self.height = userConfig.height || self.$renderTo.height();
+            var len = self.domInfo.length;
+            var lastItem = self.domInfo[len - 1];
+            var $renderTo = self.$renderTo;
+            var $ctn = self.$ctn;
+            var container = $ctn[0];
+            var itemList = self.getItemObj(-self.getOffsetTop(), height, self.domInfo);
+            self.containerHeight = (lastItem && lastItem['top']) ? lastItem['top'] + lastItem['height'] : self.height;
+            if (self.containerHeight < self.height) {
+                self.containerHeight = self.height;
+            }
+            //render stickies
+            for (var i = 0, l = self.domInfo.length; i < l; i++) {
+                if (self.domInfo[i]['type'] == 2 && !self.__stickiesRecord[self.domInfo[i]['row']]) {
+                    var itemNode = document.createElement("div");
+                    itemNode.style.top = 0;
+                    itemNode.style.width = "2.0.0%";
+                    itemNode.style.height = self.domInfo[i]['height'];
+                    itemNode.style.position = 'absolute';
+                    self.translateY(itemNode, self.domInfo[i]['top']);
+                    itemNode.innerHTML = self.domInfo[i]['template'] || "";
+                    container.appendChild(itemNode)
+                    self.__stickiesRecord[self.domInfo[i]['row']] = itemNode;
+                }
+            }
+            for (var i in self.itemPool.visibleItems) {
+                itemList[i] && self.itemPool.getItem(itemList[i], i, self.itemPool.visibleItems[i]);
+            }
+            $ctn.height(self.containerHeight);
+            self._bindEvt();
+            self.update();
+            self.fire(SYNC)
+        },
+        //simulateMouseEvent
+        simulateMouseEvent: function(event, type) {
+            if (event.touches.length > 1) {
+                return;
+            }
+            var touches = event.changedTouches,
+                first = touches[0],
+                simulatedEvent = document.createEvent('MouseEvent');
+            simulatedEvent.initMouseEvent(type, true, true, window, 1,
+                first.screenX, first.screenY,
+                first.clientX, first.clientY, false,
+                false, false, false, 0 /*left*/ , null);
+            event.target.dispatchEvent(simulatedEvent);
+        },
+        dragEndHandler: function(e,isFastScroll) {
+            var self = this;
+            var userConfig = self.userConfig;
+            var v = e.velocityY;
+            self.velocityY = v;
+            if (Math.abs(v) < 0.5 || !userConfig.useTransition) {
+                self.fire(SCROLL_END, {
+                    offsetTop: self.getOffsetTop()
+                })
+                self._boundryCheck();
+                self.update();
+                return;
+            } else {
+                var height = self.height;
+                var s0 = self.getOffsetTop();
+                if(!isFastScroll){
+                    var maxSpeed = userConfig.maxSpeed > 0 && userConfig.maxSpeed < 6 ? userConfig.maxSpeed : 3;
+                    if (v > maxSpeed) {
+                        v = maxSpeed;
+                    }
+                    if (v < -maxSpeed) {
+                        v = -maxSpeed;
+                    }
+                }
+                //judge the direction
+                self.direction = e.velocityY < 0 ? "up" : "down";
+                if (s0 > 0 || s0 < height - self.containerHeight) {
+                    var a = BOUNDRY_CHECK_ACCELERATION * (v / Math.abs(v));
+                    var t = v / a;
+                    var s0 = self.getOffsetTop();
+                    var s = s0 + t * v / 2;
+                    self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
+                    return;
+                }
+                var a = self.SROLL_ACCELERATION * (v / Math.abs(v));
+                var t = v / a;
+                var s = s0 + t * v / 2;
+                //over top boundry check bounce
+                if (s > 0) {
+                    var _s = 0 - s0;
+                    var _t = (v - Math.sqrt(-2 * a * _s + v * v)) / a;
+                    self.scrollTo(0, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
+                    self._v = v - a * _t;
+                    //over bottom boundry check bounce
+                } else if (s < height - self.containerHeight) {
+                    var _s = (height - self.containerHeight) - s0;
+                    var _t = (v + Math.sqrt(-2 * a * _s + v * v)) / a;
+                    self.scrollTo(self.containerHeight - height, _t, "cubic-bezier(" + quadratic2cubicBezier(-t, -t + _t) + ")");
+                    self._v = v - a * _t;
+                    // normal
+                } else {
+                    self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
+                }
+                self.isScrolling = true;
+                self.update();
+            }
 
 
-	return DataSet;
+        },
+        //event bind
+        _bindEvt: function() {
+            var self = this;
+            var startPos = 0;
+            var userConfig = self.userConfig;
+            var $ctn = self.$ctn;
+            var container = $ctn[0];
+            var $renderTo = self.$renderTo;
+            var height = self.height;
 
-})
-;
-KISSY.add('kg/xlist/3.0.0/index',function(S, Node, Event, XScroll, Util,DataSet) {
-	var $ = S.all;
-	//transform
-	var transform = Util.prefixStyle("transform");
-	var XList = XScroll.extend({
-		initializer: function() {
-			var self = this;
-			var userConfig = self.userConfig = S.mix({
-				data: [],
-				itemHeight: 30,
-			}, self.userConfig, undefined, undefined, true);
-			clsPrefix = userConfig.clsPrefix || "ks-xlist-";
-			self.containerClsName = clsPrefix + "container";
-			self.contentClsName = clsPrefix + "content";
-			self._initInfinite();
-			self.callSuper();
-		},
-		/**
-		 * get all element posInfo such as top,height,template,html
-		 * @return {Array}
-		 **/
-		_getDomInfo: function() {
-			var self = this;
-			var data = self._formatData();
-			var itemHeight = self.userConfig.itemHeight;
-			var top = 0;
-			var domInfo = [];
-			var height = 0;
-			self.hasSticky = false;
-			for (var i = 0, l = data.length; i < l; i++) {
-				var item = data[i];
-				height = item.style && item.style.height || itemHeight;
-				item._row = i;
-				item._top = top;
-				item._height = height;
-				item.recycled = item.recycled === false ? false : true;
-				domInfo.push(item);
-				top += height;
-				if(!self.hasSticky && item.style && item.style.position == "sticky"){
-					self.hasSticky = true;
-				}
-			}
-			self.domInfo = domInfo;
-			return domInfo;
-		},
-		appendDataSet:function(ds){
-			var self = this;
-			if(!ds instanceof DataSet) return;
-			self.datasets.push(ds);
-		},
-		removeDataSet:function(id){
-			var self = this;
-			if(!id) return;
-			for(var i = 0,l = self.datasets.length;i < l;i++){
-				if(id == self.datasets[i].getId()){
-					self.datasets[i].splice(i,1);
-				}
-			}
-		},
-		getDataSets:function(){
-			var self = this;
-			return self.datasets;
-		},
-		_formatData:function(){
-			var self = this;
-			var data = [];
-			for(var i in self.datasets){
-				data = data.concat(self.datasets[i].getData());
-			}
-			return data;
-		},
-		render: function() {
-			var self = this;
-			self.callSuper()
-			self._getDomInfo();
-			self._initSticky();
-			var height = self.get("height");
-			var lastItem = self.domInfo[self.domInfo.length - 1];
-			var containerHeight = (lastItem && lastItem._top) ? lastItem._top + lastItem._height : self.height;
-			if (containerHeight < height) {
-				containerHeight = height;
-			}
-			self.set("containerHeight", containerHeight);
-			//渲染非回收元素
-			self._renderNoRecycledEl();
-			//强制刷新
-			self._update(0,true);
-		},
-		//废可回收元素渲染
-		_renderNoRecycledEl:function(){
-			var self = this;
-			for(var i in self.domInfo){
-				if(self.domInfo[i]['recycled'] === false){
-					if(self.domInfo[i].id){
-						var el = document.getElementById(self.domInfo[i].id.replace("#",""));
-						if(!el){
-							el = document.createElement("div");
-							el.id = self.domInfo[i].id;
-							self.$content.append(el);
-						}
-						for (var attrName in self.domInfo[i].style) {
-							if (attrName != "height" && attrName != "display" && attrName != "position") {
-								el.style[attrName] = self.domInfo[i].style[attrName];
-							}
-						}
-						el.style.position = "absolute";
-						el.style.top = 0;
-						el.style.display = "block";
-						el.style.height = self.domInfo[i]._height + "px";
-						el.style[transform] = "translateY(" + self.domInfo[i]._top + "px) translateZ(0)";
-						if(self.domInfo[i].className){
-							el.className = self.domInfo[i].className;
-						}
-						self.userConfig.renderHook.call(self, el, self.domInfo[i]);
-					}
-				}
-			}
-		},
-		_initSticky:function(){
-			var self = this;
-			if(!self.hasSticky || self._isStickyRendered) return;
-			self._isStickyRendered = true;
-			var sticky = document.createElement("div");
-			sticky.style.position = "absolute";
-			sticky.style.top = "0";
-			sticky.style.display = "none";
-			self.$renderTo.prepend(sticky);
-			self.stickyElement = sticky;
-			self.stickyDomInfo = [];
-			for(var i =0,l = self.domInfo.length;i<l;i++){
-				if(self.domInfo[i] && self.domInfo[i].style && "sticky" == self.domInfo[i].style.position){
-					self.stickyDomInfo.push(self.domInfo[i]);
-				}
-			}
-			self.stickyDomInfoLength = self.stickyDomInfo.length;
-			
-		},
-		_initInfinite: function() {
-			var self = this;
-			var el = self.userConfig.infiniteElements;
-			self.datasets = [];
-			if(self.userConfig.data && self.userConfig.data.length){
-				self.datasets.push(new DataSet({data:self.userConfig.data}));
-			}
-			self.infiniteElements = self.$renderTo[0].querySelectorAll(el);
-			self.infiniteLength = self.infiniteElements.length;
-			self.infiniteElementsCache = (function() {
-				var tmp = []
-				for (var i = 0; i < self.infiniteLength; i++) {
-					tmp.push({});
-					self.infiniteElements[i].style.display = "none";
-				}
-				return tmp;
-			})()
-			self.elementsPos = {};
-			self.on("scroll", function(e) {
-				self._update(e.offset.y);
-				self._stickyHandler(e.offset.y);
-			})
-		},
-		_stickyHandler:function(offsetTop){
-			var self = this;
-			if(!self.stickyDomInfoLength) return;
-			if(offsetTop > 0) {
-				self.stickyElement.style.display = "none";
-				return;
-			}
-			var offsetTop = Math.abs(offsetTop);
-			for(var i = 0;i < self.stickyDomInfoLength;i++){
-				if(offsetTop >= self.stickyDomInfo[i]._top){
-					self.userConfig.renderHook.call(self, self.stickyElement, self.stickyDomInfo[i]);
-					self.stickyElement.style.display = "block";
-					self.stickyElement.style.height = self.stickyDomInfo[i].style.height + "px";
-					self.stickyElement.className = self.stickyDomInfo[i].className || "";
-					for (var attrName in self.stickyDomInfo[i].style) {
-						if (attrName != "height" && attrName != "display" && attrName != "position") {
-							self.stickyElement.style[attrName] = self.stickyDomInfo[i].style[attrName];
-						}
-					}
-				}else{
-					if(i != self.stickyDomInfoLength - 1){
-						self.stickyElement.style.display = "none";
-					}
-				}
-			}
+            if (self.__isEvtBind) return;
+            self.__isEvtBind = true;
 
-		},
-		_getElementsPos: function(offsetTop) {
-			var self = this;
-			var offsetTop = -(offsetTop || self.getOffsetTop());
-			var data = self.domInfo;
-			var itemHeight = self.userConfig.itemHeight;
-			var elementsPerPage = Math.ceil(self.get("height") / itemHeight);
-			var maxBufferedNum = Math.max(Math.ceil(elementsPerPage / 3), 0);
-			var posTop = Math.max(offsetTop - maxBufferedNum * itemHeight, 0);
-			var tmp = {},
-				item;
-			for (var i = 0, len = data.length; i < len; i++) {
-				item = data[i];
-				if (item._top >= posTop - itemHeight && item._top <= posTop + 2 * maxBufferedNum * itemHeight + self.get("height")) {
-					tmp[item._row] = item;
-				}
-			}
-			return tmp
-		},
-		_getChangedRows: function(newElementsPos,force) {
-			var self = this;
-			var changedRows = {};
-			for (var i in self.elementsPos) {
-				if (!newElementsPos.hasOwnProperty(i)) {
-					changedRows[i] = "delete";
-				}
-			}
-			for (var i in newElementsPos) {
-				if (newElementsPos[i].recycled && (!self.elementsPos.hasOwnProperty(i) || force)) {
-					changedRows[i] = "add";
-				}
-			}
-			
-			self.elementsPos = newElementsPos;
-			return changedRows;
-		},
-		_update: function(offset,force) {
-			var self = this;
-			var offset = offset || self.getOffsetTop();
-			var elementsPos = self._getElementsPos(offset);
-			var changedRows = self._getChangedRows(elementsPos,force);
-			var el = null;
-			var getElIndex = function() {
-				for (var i = 0; i < self.infiniteLength; i++) {
-					if (!self.infiniteElementsCache[i]._visible) {
-						self.infiniteElementsCache[i]._visible = true;
-						return i;
-					}
-				}
-			}
-			var setEl = function(row) {
-				for (var i = 0; i < self.infiniteLength; i++) {
-					if (self.infiniteElementsCache[i]._row == row) {
-						self.infiniteElementsCache[i]._visible = false;
-						delete self.infiniteElementsCache[i]._row;
-					}
-				}
-			}
-			for (var i in changedRows) {
-				if (changedRows[i] == "delete") {
-					setEl(i);
-				}
-				if (changedRows[i] == "add") {
-					var index = getElIndex(elementsPos[i]._row);
-					el = self.infiniteElements[index];
-					if (el) {
-						self.infiniteElementsCache[index]._row = elementsPos[i]._row;
-						for (var attrName in elementsPos[i].style) {
-							if (attrName != "height" && attrName != "display" && attrName != "position") {
-								el.style[attrName] = elementsPos[i].style[attrName];
-							}
-						}
-						el.style.position = "absolute";
-						el.style.top = 0;
-						el.style.display = "block";
-						el.style.height = elementsPos[i]._height + "px";
-						el.style[transform] = "translateY(" + elementsPos[i]._top + "px) translateZ(0)";
-						self.userConfig.renderHook.call(self, el, elementsPos[i]);
-					}
-				}
-			}
-		}
+            $renderTo.on("touchstart", function(e) {
+                e.preventDefault()
+            }).on("tap", function(e) {
+                if (!self.isScrolling) {
+                    //模拟鼠标点击
+                    self.simulateMouseEvent(e, "click");
+                }
+            }).on("tap tapHold", function(e) {
+                self.isScrolling = false;
+                self.fire(SCROLL_END, {
+                    originType: e.type,
+                    offsetTop: self.getOffsetTop()
+                })
+            }).on(Drag.DRAG_START, function(e) {
+                if (e.changedTouches.length > 1) return;
+                startPos = self.getOffsetTop();
+                if (self.isScrolling) {
+                    //prevent wrong tap
+                    self.fire(SCROLL_END, {
+                        offsetTop: startPos
+                    });
+                }
 
-	}, {
-		ATTRS: {
-			lockX: {
-				value: true
-			}
-		}
-	});
+                self.translateY(container, startPos);
+                container.style[transition] = "";
+                self.fire(DRAG_START);
+            }).on(Drag.DRAG, function(e) {
+                e.preventDefault();
+                if (e.changedTouches.length > 1) return;
+                var pos = Number(startPos) + e.deltaY;
+                if (pos > 0) { //overtop 
+                    pos = pos * BOUNDRY_DRAG_RATE;
+                }
+                if (pos < self.height - self.containerHeight) { //overbottom 
+                    pos = pos + (self.height - self.containerHeight - pos)  * BOUNDRY_DRAG_RATE;
+                }
+                self.translateY(container, pos.toFixed(0));
+                container.style[transition] = "";
+                self.isScrolling = false;
+                self.update();
+                self.fire(DRAG);
+                self.fire(SCROLL, {
+                    offsetTop: Number(pos.toFixed(0))
+                })
+            }).on(Drag.DRAG_END, function(e) {
+                self.dragEndHandler(e)
+                self.fire(DRAG_END, {
+                    velocityY: e.velocityY
+                })
+            })
 
-	XList.DataSet = DataSet;
 
-	return XList;
+
+            function transitionEndHandler(e) {
+                //stoppropagation inside root element
+                if (containerClsReg.test(e.target.className)) {
+                    self.isScrolling = false;
+                    if (self._v) {
+                        self.fire("outOfBoundry")
+                        var v = self._v;
+                        var a = 0.04 * (v / Math.abs(v));
+                        var t = v / a;
+                        var s0 = self.getOffsetTop();
+                        var s = s0 + t * v / 2;
+                        self.scrollTo(-s, t, "cubic-bezier(" + quadratic2cubicBezier(-t, 0) + ")");
+                        self._v = 0;
+                    } else {
+                        self._boundryCheck();
+                    }
+                    //trigger scrollEnd function after scrolling
+                    self.fire(SCROLL_END, {
+                        offsetTop: self.getOffsetTop()
+                    });
+                }
+            }
+
+            //callback
+            container.addEventListener("transitionend", transitionEndHandler, false);
+            container.addEventListener("webkitTransitionEnd", transitionEndHandler, false);
+            container.addEventListener("oTransitionEnd", transitionEndHandler, false);
+            container.addEventListener("MSTransitionEnd", transitionEndHandler, false);
+
+        }
+    }, {
+        ATTRS: {
+
+        }
+    })
+
+    return XList
+
 }, {
-	requires: ['node', 'event', 'kg/xscroll/1.1.1/index', 'kg/xscroll/1.1.1/util','./dataset']
+    requires: ["node", "event", "base", "kg/template/2.0.0/", "./drag","./tap"]
 })

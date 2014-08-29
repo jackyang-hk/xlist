@@ -3,13 +3,13 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0, minimum-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=2.0.0, user-scalable=0, minimum-scale=2.0.0, maximum-scale=2.0.0">
 <link rel="stylesheet" type="text/css" href="../demo/demo.css">
 <title>XList demo: infinite scrolling</title>
 </head>
 <body >
 <div id="header">XList</div>
-<input type="button" value="scrollTo(10,20)" onclick="xlist.scrollTo(100,0)" style="position:absolute;z-index:9999;">
+<input type="button" value="scrollTo(10,20)" onclick="xlist.scrollTo(2.0.0,0)" style="position:absolute;z-index:9999;">
 <div id="J_List">
     <ul class="ks-xlist-container"></ul>
 </div>
@@ -18,7 +18,16 @@
  <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
 <script>
 (function(S){
-S.use('node,ajax,gallery/xlist/1.0/index,gallery/template/1.0/,gallery/xlist/1.0/plugin/pulldown,gallery/xlist/1.0/plugin/scrollbar,gallery/xlist/1.0/plugin/pullup', function(S,Node,Ajax, XList,Template,PullDownPlugin,ScrollBarPlugin,PullUpPlugin) {
+ S.config({
+        packages:[
+        {
+            name:"kg",
+            path:"../../../../",
+            debug:true,
+            tag:Math.random()
+        }]
+    })
+S.use('node,ajax,kg/xlist/2.0.0/index,kg/template/2.0.0/,kg/xlist/2.0.0/plugin/pulldown,kg/xlist/2.0.0/plugin/scrollbar,kg/xlist/2.0.0/plugin/pullup', function(S,Node,Ajax, XList,Template,PullDownPlugin,ScrollBarPlugin,PullUpPlugin) {
     var $ = S.all,xlist;
     /*
     记录每一页的数据  {}
