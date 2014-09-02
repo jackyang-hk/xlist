@@ -2,7 +2,6 @@
 
 * 版本：3.0.0
 * 教程：[http://gallery.kissyui.com/xlist/3.0.0/guide/index.html](http://gallery.kissyui.com/xlist/3.0.0/guide/index.html)
-* demo：[http://gallery.kissyui.com/xlist/3.0.0/demo/index.html](http://gallery.kissyui.com/xlist/3.0.0/demo/index.html)
 
 ## changelog
 

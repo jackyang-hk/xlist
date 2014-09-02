@@ -2,35 +2,62 @@
 
 Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大列表，支持复杂的文档流类型，支持异步加载、刷新、滚动条等功能。
 
-* 版本：2.0.0
+* 版本：3.0.0
 * 作者：伯才
 * demo：
-### 注意：以下demo请在移动设备上查看
+
+注意：以下demo请在移动设备上查看
 
 [最简demo](../demo/default.html)
 
-[滚动条.html](../demo/scrollbar.html)
+[滚动条](../demo/scrollbar.html)
 
-[下拉刷新.html](../demo/pulldownrefresh.html)
+[下拉刷新](../demo/pulldownrefresh.html)
 
-[上拉分页-滚动条-下拉刷新.html](../demo/pagination.html)
+[上拉分页](../demo/pagination.html)
 
-[异步楼层加载](../demo/async-floor.html)
+[异步数据更新](../demo/async-data.html)
+
+[吸顶元素sticky](../demo/sticky.html)
+
+[css样式设置](../demo/style.html)
+
+产品应用demo：
 
 [聚划算wap简单demo](../demo/jhs.html)
 
 [聚划算ipad今日团list](http://ju.taobao.com/pad/normal.htm)
 
-## 初始化组件
-		
-    S.use('kg/xlist/2.0.0/index', function (S, XList) {
-         var xlist = new XList({
-         	renderTo: "#J_List",
-	        data: data,
-	        template: '<div class="item"><h2>Xlist的demo {{num}}</h2></div>',
-	        itemHeight: 50 //行高
-         });
-    })
+### 初始化组件
+
+```    
+S.use('kg/xlist/3.0.0/index', function (S, XList) {
+     var xlist = new XList({
+     	renderTo: "#J_List",
+        data: data,
+        itemHeight: 50 //行高
+     });
+})
+
+```
+
+
+### html结构
+
+```
+    <div id="J_List">
+        <div class="ks-xlist-container">
+            <ul class="ks-xlist-content">
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+            </ul>
+        </div>
+    </div>
+
+```
 	
 
 ## API说明
@@ -49,31 +76,71 @@ Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大
 
 { Array } 初始化需要传入的数据
 
-#### autoRender
+数据格式
 
-{ Boolean } 是否自动渲染，若设置为false，则需要手动调用render()方法
+```
+var data = [
+    {
+       //实际数据
+       data:{
+            name:"Jack",
+            age:12
+       }, 
+       //css样式
+       style:{
+            height:100,
+            color:"red"
+       },
+       //是否可被回收 默认true
+       recycled:false
+    },
+    {
+        //实际数据
+       data:{
+            name:"Tom",
+            age:11
+       }, 
+       //css样式
+       style:{
+            height:120,
+            color:"white",
+            background:"#000"
+       },
+       //是否可被回收 默认true
+       recycled:false
+    },
+    {...},
+    {...}
+];
 
-#### translate3D
+var xlist = new XList({
+         renderTo: "#J_List",
+        data: data, //传入数据
+        itemHeight: 50 //行高
+     });
 
-{ Boolean } 是否开启3Dtranslate以提高滚动性能
-
-#### stickies
-
-{ Object } 黏在页面上伴随着滚动的元素列表，如:banner slide之类的非常规item
-
-	- 键(key) 代表行号 如{1:{template:"<span>{{demo}}</span>",height:2.0.0}}
-	- 值(value) {object}  
-	- template {string} 模板|html内容 KISSY.Template
-	- height {number} 行高
-	- type {number}  坑位类型
-		1、常规元素(不用设置)
-		2、不进行dom回收的非常规元素(默认为2，带有js的，如slide 等通过js处理的坑位)
-
+```
 
 
 #### renderHook
 
-{ Function } 返回e.element代表当前可用的节点   e.data代表当前行的数据  e.template代表默认模板（可自定义）KISSY.Template e.row代表当前屏幕可视区域内渲染的行号。
+{ Function } 逐行渲染逻辑
+
+代码示例:
+
+```
+var xlist = new XList({
+            renderTo: "#J_List",
+            data: data,
+            itemHeight: 40 ,
+            infiniteElements:"#J_Scroll .ks-xlist-row",
+            renderHook:function(el,row){
+            //若逻辑复杂此处可用XTemplate进行渲染
+                el.innerHTML = "<h1>name:"+row.data.name+"</h1><p>age:"+row.data.age+"</p>";
+            }
+        });
+
+```
 
 
 #### SROLL_ACCELERATION
@@ -85,7 +152,7 @@ Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大
 
 #### render()
 
-渲染
+渲染，每当需要更新时，都可以执行该方法。
 
 #### getOffsetTop()
 
@@ -95,14 +162,47 @@ Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大
 
 滚动到某个位置
 
-#### enableBoundryCheck()
+#### bounce(Boolean)
 
-滚动到顶部（底部）的回弹开关 
+是否允许上下边缘回弹效果。
 
-#### disableBoundryCheck()
+#### appendDataSet(Array)
 
-滚动到顶部（底部）的回弹开关 
+添加数据集，参考[DataSet](http://gallery.kissyui.com/xscroll/1.1.4/guide/dataset.html)类
 
+#### removeDataSet(datasetId)
+
+移除数据集，参考[DataSet](http://gallery.kissyui.com/xscroll/1.1.4/guide/dataset.html)类
+
+#### getDataSets
+
+获取所有数据集，参考[DataSet](http://gallery.kissyui.com/xscroll/1.1.4/guide/dataset.html)类
+
+DataSet代码示例
+
+```
+KISSY.use("node,ajax,kg/xlist/3.0.0/index,kg/xlist/3.0.0/dataset",function(S,Node,Ajax,XList,DataSet){
+
+        var xlist = new XList({
+            renderTo: "#J_Scroll",
+            itemHeight: 40 ,
+            infiniteElements:"#J_Scroll .ks-xlist-row",
+            renderHook:function(el,data){
+                el.innerText = data.data.num;
+            }
+        });
+        
+        var ds = new DataSet(); //创建dataset
+        var data = [
+            {...},
+            {...}
+        ];
+        ds.appendData(data); //插入数据至dataset实例
+        xlist.appendDataSet(ds); //插入数据至xlist
+        xlist.render(); //更新并渲染xlist
+    });
+
+```
 
 ### Event
 
@@ -122,54 +222,21 @@ Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大
 
 每一次render()方法后触发
 
-#### dragStart
+#### panStart
 
-开始拖动页面前触发
+手指开始移动时触发
 
-#### drag
+#### pan
 
-拖动时触发
+手指移动时触发
 
-#### dragEnd
+#### panEnd
 
-拖动结束后触发，会包含速度矢量。
+手指移动结束后触发，会包含速度矢量。
 
-#### outOfBoundry
+### Super Class
 
-上下越界回弹时触发
-
-
-
-### Plugins
-
-#### scrollbar
-
-滚动条插件
-
-#### pulldown
-
-下拉刷新插件
-
-#### pullup
-
-上拉加载插件
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#### [XScroll](http://gallery.kissyui.com/xscroll/doc/guide/index.html)
 
 
 
