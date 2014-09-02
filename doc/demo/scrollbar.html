@@ -11,24 +11,24 @@
 <div id="header">XList</div>
 
 <div id="J_List">
-    <div class="ks-xlist-container">
-        <ul class="ks-xlist-content">
-        
-        </ul>
-    </div>
+    <ul class="ks-xlist-container"></ul>
 </div>
 
 <div id="footer">A infinity list</div>
  <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
 <script>
-KISSY.config({
-    packages:[
-    {
-        name:"kg",
-        path:"http://g.tbcdn.cn/"
-    }]
-})
-KISSY.use("kg/xlist/3.0.0/index,kg/xscroll/1.1.3/plugin/scrollbar", function(S, XList, ScrollBarPlugin) {
+if(KISSY.Config.debug){
+    KISSY.config({
+        packages:[
+        {
+            name:"kg",
+            path:"../../../../",
+            debug:true,
+            tag:Math.random()
+        }]
+    })
+}
+KISSY.use("kg/xlist/2.0.0/index,kg/template/2.0.0/,kg/xlist/2.0.0/plugin/scrollbar", function(S, XList, Template, ScrollBarPlugin) {
 	var $ = S.all
 	var data = (function() {
         var tmp = [];
@@ -42,17 +42,15 @@ KISSY.use("kg/xlist/3.0.0/index,kg/xscroll/1.1.3/plugin/scrollbar", function(S, 
 
 	var xlist = new XList({
 		renderTo: "#J_List",
+		autoRender: false,
 		data: data,
-		itemHeight: 50,
-        renderHook:function(e){
-            var el = document.createElement("li");
-            el.className = "row"
-            el.innerHTML = e.data.num;
-            return el;
-        }
+		itemHeight: 50 ,
+		template: '<li class="row">Row {{num}}</li>'
 	});
 
-	xlist.plug(new ScrollBarPlugin());
+	xlist.plug(new ScrollBarPlugin({
+		xlist: xlist
+	}));
 
 	xlist.render()
 })

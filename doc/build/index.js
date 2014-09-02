@@ -6,20 +6,6 @@ kg/xlist/3.0.0/index
 
 */
 ;KISSY.add('kg/xlist/3.0.0/dataset',function(S){
-/*
-	var ds = new Xlist.DataSet({
-	   id:””,
-	   data:[]
-	});
-
-	ds.appendData([{},{}]);
-
-	ds.removeData();
-
-	ds.getId()
-
-	ds.getData()
-*/
 
 	var DataSet = function(cfg){
 
@@ -337,5 +323,5 @@ KISSY.add('kg/xlist/3.0.0/index',function(S, Node, Event, XScroll, Util,DataSet)
 
 	return XList;
 }, {
-	requires: ['node', 'event', 'kg/xscroll/1.1.3/index', 'kg/xscroll/1.1.3/util','./dataset']
+	requires: ['node', 'event', 'kg/xscroll/1.1.4/index', 'kg/xscroll/1.1.4/util','./dataset']
 })
