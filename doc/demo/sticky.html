@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Document</title>
+    <title>stikcy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
     <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
     <link rel="stylesheet" type="text/css" href="http://g.tbcdn.cn/ju/jupad/1.2.10/??mods/pad/common/reset.css,pages/pad/life.less.css,mods/pad/common/item_normal.less.css,mods/pad/common/banner.css,mods/pad/life/bar.less.css">
     <link rel="stylesheet" type="text/css" href="../demo/demo.css">
-    <script type="text/javascript" src="./fps.js"></script>
 </head>
 <body>
     <style type="text/css">
@@ -115,9 +114,6 @@
         </div>
     </div>
     <div id="footer">infinity-scroll</div>
-    <script type="tpl" id="J_Tpl">
-       {{num}}
-    </script>
     <script type="text/javascript">
    KISSY.config({
         packages:[
@@ -128,7 +124,7 @@
             }
         ]
     });
-    KISSY.use("node,kg/xlist/3.0.0/index,kg/xscroll/1.1.4/plugin/scrollbar,kg/xscroll/1.1.4/plugin/fastscroll,gallery/template/1.0/",function(S,Node,XList,ScrollBarPlugin,FastScrollPlugin,Template){
+    KISSY.use("node,kg/xlist/3.0.0/index,kg/xscroll/1.1.4/plugin/scrollbar",function(S,Node,XList,ScrollBarPlugin){
         var $ = S.all;
         var data = (function() {
             var tmp = [
@@ -144,12 +140,12 @@
                     background:"#fff",
                     color:"#000",
                     position:"sticky",
-                    "z-index":9999,
+                    "z-index":100,
                     width:"100%"
                 }
             }
             ];
-            for (var i = 1; i <= 50; i++) {
+            for (var i = 1; i <= 1000; i++) {
                 if(i == 3){
                     //非回收元素
                     tmp.push({
@@ -195,7 +191,7 @@
                             background:"#fff",
                             color:"#000",
                             position:"sticky",
-                            "z-index":9999,
+                            "z-index":100,
                             width:"100%"
                         }
                     })
@@ -203,8 +199,7 @@
                 }else{
                     tmp.push({
                         data:{num: i},
-                        recycled:true,
-                        style:{}
+                        recycled:true
                     })
                 }
 
@@ -212,7 +207,6 @@
             }
             return tmp
         })()
-        var new_Tpl = $("#J_Tpl").html()
         var xlist = new XList({
             renderTo: "#J_Scroll",
             data: data,
@@ -223,31 +217,14 @@
                 if(!data.recycled){
                     el.innerHTML = data.data.text
                 }else{
-                    el.innerHTML = Template(new_Tpl).render(data.data);
+                    el.innerHTML = data.data.num;
                 }
             }
         });
-
-        window.xlist = xlist;
+        xlist.plug(new ScrollBarPlugin())
 
         xlist.render();
 
-       var requestAnimationFrame = window.requestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.msRequestAnimationFrame;
-        var meter;
-
-        if (requestAnimationFrame){
-            window.requestAnimationFrame = requestAnimationFrame;
-            meter = new FPSMeter();
-            draw();
-        }
-
-        function draw() {
-            requestAnimationFrame(draw);
-            meter.tick();
-        }
 
     });
     </script>

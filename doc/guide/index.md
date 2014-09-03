@@ -14,13 +14,17 @@ Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大
 
 [下拉刷新](../demo/pulldownrefresh.html)
 
-[上拉分页](../demo/pagination.html)
+[上拉分页加载](../demo/pagination.html)
 
 [异步数据更新](../demo/async-data.html)
 
 [吸顶元素sticky](../demo/sticky.html)
 
 [css样式设置](../demo/style.html)
+
+[单行多列](../demo/multi-cols.html)
+
+[滚动阻尼调整](../demo/accelaration.html)
 
 产品应用demo：
 

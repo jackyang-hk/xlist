@@ -280,5 +280,5 @@ KISSY.add(function(S, Node, Event, XScroll, Util,DataSet) {
 
 	return XList;
 }, {
-	requires: ['node', 'event', 'kg/xscroll/1.1.1/index', 'kg/xscroll/1.1.1/util','./dataset']
+	requires: ['node', 'event', 'kg/xscroll/1.1.4/index', 'kg/xscroll/1.1.4/util','./dataset']
 })
