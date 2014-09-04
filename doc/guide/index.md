@@ -10,8 +10,6 @@ Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大
 
 [最简demo](../demo/default.html)
 
-[滚动条](../demo/scrollbar.html)
-
 [下拉刷新](../demo/pulldownrefresh.html)
 
 [上拉分页加载](../demo/pagination.html)

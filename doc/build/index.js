@@ -1,11 +1,11 @@
 /*
 combined files : 
 
-kg/xlist/3.0.0/dataset
-kg/xlist/3.0.0/index
+kg/xlist/3.0.1/dataset
+kg/xlist/3.0.1/index
 
 */
-;KISSY.add('kg/xlist/3.0.0/dataset',function(S){
+;KISSY.add('kg/xlist/3.0.1/dataset',function(S){
 
 	var DataSet = function(cfg){
 
@@ -42,7 +42,7 @@ kg/xlist/3.0.0/index
 
 })
 ;
-KISSY.add('kg/xlist/3.0.0/index',function(S, Node, Event, XScroll, Util,DataSet) {
+KISSY.add('kg/xlist/3.0.1/index',function(S, Node, Event, XScroll, Util,DataSet) {
 	var $ = S.all;
 	//transform
 	var transform = Util.prefixStyle("transform");
@@ -323,5 +323,5 @@ KISSY.add('kg/xlist/3.0.0/index',function(S, Node, Event, XScroll, Util,DataSet)
 
 	return XList;
 }, {
-	requires: ['node', 'event', 'kg/xscroll/1.1.4/index', 'kg/xscroll/1.1.4/util','./dataset']
+	requires: ['node', 'event', 'kg/xscroll/1.1.5/index', 'kg/xscroll/1.1.5/util','./dataset']
 })

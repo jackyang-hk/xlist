@@ -115,12 +115,12 @@
         packages:[
             {
                 name:"kg",
-                path:"http://g.assets.daily.taobao.net/kg/",
+                 path:KISSY.Config.debug ? "http://g.assets.daily.taobao.net/kg/":"http://g.tbcdn.cn/kg/",
                 ignorePackageNameInUri:true
             }
         ]
     });
-    KISSY.use("node,kg/xlist/3.0.0/index,kg/xscroll/1.1.4/plugin/scrollbar,kg/xscroll/1.1.4/plugin/pulldown",function(S,Node,XList,ScrollBarPlugin,PullDownPlugin){
+    KISSY.use("node,kg/xlist/3.0.1/index,kg/xscroll/1.1.5/plugin/scrollbar,kg/xscroll/1.1.5/plugin/pulldown",function(S,Node,XList,ScrollBarPlugin,PullDownPlugin){
         var data = (function() {
             var tmp = [];
             for (var i = 1; i <= 1000; i++) {

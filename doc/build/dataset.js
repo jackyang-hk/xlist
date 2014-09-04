@@ -1,10 +1,10 @@
 /*
 combined files : 
 
-kg/xlist/3.0.0/dataset
+kg/xlist/3.0.1/dataset
 
 */
-;KISSY.add('kg/xlist/3.0.0/dataset',function(S){
+;KISSY.add('kg/xlist/3.0.1/dataset',function(S){
 
 	var DataSet = function(cfg){
 

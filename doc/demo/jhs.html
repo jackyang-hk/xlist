@@ -174,12 +174,12 @@
         packages:[
             {
                 name:"kg",
-                path:"http://g.assets.daily.taobao.net/kg/",
+                 path:KISSY.Config.debug ? "http://g.assets.daily.taobao.net/kg/":"http://g.tbcdn.cn/kg/",
                 ignorePackageNameInUri:true
             }
         ]
     });
-S.use('node,ajax,kg/xlist/3.0.0/,kg/xscroll/1.1.4/plugin/scrollbar,kg/xscroll/1.1.4/plugin/pulldown,xtemplate', function(S,Node,Ajax, XList,ScrollBar,PullDown,XTemplate) {
+S.use('node,ajax,kg/xlist/3.0.1/,kg/xscroll/1.1.5/plugin/scrollbar,kg/xscroll/1.1.5/plugin/pulldown,xtemplate', function(S,Node,Ajax, XList,ScrollBar,PullDown,XTemplate) {
     var $ = S.all,xlist;
     //记录每一页的数据
      var pageCache ={};
