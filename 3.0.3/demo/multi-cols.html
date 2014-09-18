@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>default</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+    <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="http://g.tbcdn.cn/ju/jupad/1.2.10/??mods/pad/common/reset.css,pages/pad/life.less.css,mods/pad/common/item_normal.less.css,mods/pad/common/banner.css,mods/pad/life/bar.less.css">
+    <link rel="stylesheet" type="text/css" href="../demo/demo.css">
+</head>
+<body>
+    <style type="text/css">
+    body,ul,li,div,img{
+        padding: 0;margin:0;
+    }
+    img{
+        display: block;
+    }
+    body{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+     #J_Scroll{
+        position: absolute;
+        top:45px;
+        bottom: 48px;
+        width:100%;
+     }
+    #J_Scroll ul{
+        width: 100%;
+    }
+    #J_Scroll ul li.ks-xlist-row{
+        width: 100%;
+        display: none;
+    }
+    .ks-xlist-container{
+        width: 100%;
+    }
+    </style>
+    <div id="header">XList</div>
+    <div id="J_Scroll">
+        <div class="ks-xlist-container">
+            <ul class="ks-xlist-content">
+
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+                <li class="ks-xlist-row"></li>
+
+
+            </ul>
+        </div>
+    </div>
+    <div id="footer">infinity-scroll</div>
+    <script type="tpl" id="J_Tpl">
+       {{num}}
+    </script>
+    <script type="text/javascript">
+   KISSY.config({
+        packages:[
+            {
+                name:"kg",
+                 path:KISSY.Config.debug ? "http://g.assets.daily.taobao.net/kg/":"http://g.tbcdn.cn/kg/",
+                ignorePackageNameInUri:true
+            }
+        ]
+    });
+    KISSY.use("node,kg/xlist/3.0.3/index,kg/xscroll/1.1.8/plugin/scrollbar,xtemplate",function(S,Node,XList,ScrollBarPlugin,XTemplate){
+        var $ = S.all;
+        var cols = 4;
+        var width = $("body").width();
+        var itemHeight = width/cols;
+
+        var data = (function() {
+            var tmp = [],row;
+            for (var i = 1; i <= 1000; i++) {
+                tmp.push({num: i})
+            }
+            return tmp
+        })()
+
+        //格式化数据成cols列
+        var fdata = [];
+        for(var i in data){
+            if(i % cols == 0){
+                var tmp = [];
+                for(var j =i;j<i/1+cols/1;j++){
+                    tmp.push(data[j]);
+                }
+                fdata.push({data:tmp})
+            }
+        }
+
+var tpl = '{{#each data}}'+
+            "<div  style='float:left;text-align:center;width:"+ 100/cols+"%;height:"+itemHeight+"px;line-height:"+itemHeight+"px;-webkit-box-shadow:0px 0px 1px 0.5px #ccc;'>"+
+            '{{num}}'+
+            '</div>'+
+            '{{/each}}';
+var tplCache = new XTemplate(tpl);
+
+        var xlist = new XList({
+            renderTo: "#J_Scroll",
+            data: fdata,
+            itemHeight: itemHeight ,
+            infiniteElements:"#J_Scroll .ks-xlist-row",
+            renderHook:function(el,data){
+                el.innerHTML = tplCache.render(data);
+            }
+        });
+        
+        xlist.plug(new ScrollBarPlugin());
+        xlist.render();
+
+    });
+    </script>
+</body>
+</html>
