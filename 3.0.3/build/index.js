@@ -349,7 +349,10 @@ KISSY.add('kg/xlist/3.0.3/index',function(S, Node, Event, XScroll, Util,DataSet)
 		ATTRS: {
 			lockX: {
 				value: true
-			}
+			},
+			 gpuAcceleration:{
+                value:true
+            }
 		}
 	});
 

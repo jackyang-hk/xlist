@@ -306,7 +306,10 @@ KISSY.add(function(S, Node, Event, XScroll, Util,DataSet) {
 		ATTRS: {
 			lockX: {
 				value: true
-			}
+			},
+			 gpuAcceleration:{
+                value:true
+            }
 		}
 	});
 
