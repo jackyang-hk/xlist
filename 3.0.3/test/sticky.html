@@ -48,7 +48,7 @@
     <div id="J_Scroll">
         <div class="ks-xlist-container">
             <ul class="ks-xlist-content">
-
+                    <li class="ks-xlist-row">0</li>
                 <li class="sticky" id="J_Sticky1">吸顶元素1</li>
 
                 <li class="ks-xlist-row">1</li>
@@ -132,8 +132,12 @@
         var $ = S.all;
         var data = (function() {
             var tmp = [
-            // 吸顶元素
-            {
+            
+            ];
+            for (var i = 0; i <= 50; i++) {
+                if(i == 2){
+                    // 吸顶元素
+            tmp.push({
                 data:{
                     text:$("#J_Sticky1").html()
                 },
@@ -147,10 +151,9 @@
                     "z-index":9999,
                     width:"100%"
                 }
-            }
-            ];
-            for (var i = 1; i <= 50; i++) {
-                if(i == 3){
+            })
+                }
+                else if(i == 3){
                     //非回收元素
                     tmp.push({
                         data:{
