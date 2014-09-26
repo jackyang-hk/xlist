@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>default</title>
+    <title>Document</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
     <script src="http://g.tbcdn.cn/kissy/k/1.4.2/seed-min.js" charset="utf-8"></script>
     <link rel="stylesheet" type="text/css" href="http://g.tbcdn.cn/ju/jupad/1.2.10/??mods/pad/common/reset.css,pages/pad/life.less.css,mods/pad/common/item_normal.less.css,mods/pad/common/banner.css,mods/pad/life/bar.less.css">
@@ -27,12 +27,15 @@
         top:45px;
         bottom: 48px;
         width:100%;
+        
      }
     #J_Scroll ul{
         width: 100%;
     }
     #J_Scroll ul li.ks-xlist-row{
         width: 100%;
+    }
+    .ks-xlist-content{
     }
     .ks-xlist-container{
         width: 100%;
@@ -109,15 +112,16 @@
         packages:[
             {
                 name:"kg",
-                 path:KISSY.Config.debug ? "http://g.assets.daily.taobao.net/kg/":"http://g.tbcdn.cn/kg/",
+                path:"http://g.assets.daily.taobao.net/kg/",
                 ignorePackageNameInUri:true
             }
         ]
     });
-    KISSY.use("node,kg/xlist/3.0.3/index,kg/xscroll/1.1.8/plugin/scrollbar",function(S,Node,XList,ScrollBarPlugin){
+    KISSY.use("node,kg/xlist/3.0.0/index,kg/xscroll/1.1.1/plugin/scrollbar",function(S,Node,XList,ScrollBarPlugin){
+        var $ = S.all;
         var data = (function() {
             var tmp = [];
-            for (var i = 1; i <= 1000; i++) {
+            for (var i = 1; i <= 20; i++) {
                 tmp.push({
                     data:{num: i},
                     recycled:true
@@ -129,15 +133,31 @@
             renderTo: "#J_Scroll",
             data: data,
             itemHeight: 40 ,
+            autoRender:false,
             infiniteElements:"#J_Scroll .ks-xlist-row",
             renderHook:function(el,data){
                 el.innerText = data.data.num;
             }
         });
         
+        window.xlist = xlist;
         var scrollbar = new ScrollBarPlugin({});
         xlist.plug(scrollbar);
         xlist.render();
+        var height = 40;
+        $("<div class='ks-xscroll-pullup-plugin'>loading</div>").css({
+            height:height,
+            "line-height":height+"px",
+            "text-align":"center",
+            bottom:-height,
+            position:"absolute",
+            width:"100%",
+            background:"#fff"
+        }).appendTo(xlist.$ctn);
+
+        xlist.boundry.expandBottom(height);
+
+
 
     });
     </script>

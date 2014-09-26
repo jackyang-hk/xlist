@@ -114,7 +114,7 @@
             }
         ]
     });
-    KISSY.use("node,kg/xlist/3.0.1/index,kg/xscroll/1.1.4/plugin/scrollbar",function(S,Node,XList,ScrollBarPlugin){
+    KISSY.use("node,kg/xlist/3.0.3/index,kg/xscroll/1.1.8/plugin/scrollbar",function(S,Node,XList,ScrollBarPlugin){
         var data = (function() {
             var tmp = [];
             for (var i = 1; i <= 1000; i++) {
@@ -128,7 +128,7 @@
         var xlist = new XList({
             renderTo: "#J_Scroll",
             data: data,
-            SROLL_ACCELERATION:0.005, //阻尼 越小滚动的距离越多 默认 0.002
+            SROLL_ACCELERATION:0.001, //阻尼 越小滚动的距离越多 默认 0.002
             itemHeight: 40 ,
             infiniteElements:"#J_Scroll .ks-xlist-row",
             renderHook:function(el,data){

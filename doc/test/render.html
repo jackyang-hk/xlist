@@ -124,7 +124,7 @@
             }
         ]
     });
-    KISSY.use("node,ajax,kg/xlist/3.0.3/index,kg/xscroll/1.1.8/plugin/scrollbar",function(S,Node,Ajax,XList,ScrollBarPlugin){
+    KISSY.use("node,ajax,kg/xlist/3.0.2/index,kg/xscroll/1.1.6/plugin/scrollbar",function(S,Node,Ajax,XList,ScrollBarPlugin){
 
         var pageCache ={};
 
@@ -165,13 +165,16 @@
             }
         })
 
-        window.xlist = xlist;
 
         getData()
 
         xlist.render();
 
-
+        setTimeout(function(){
+            xlist.getDataSets()[0].data[0].style = {"color":"red",height:200}
+            xlist.getDataSets()[0].data[0].data.num = "this is updated content!!!"
+            xlist.render()
+        },1000)
         
 
     });
