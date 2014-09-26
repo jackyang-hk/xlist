@@ -4,7 +4,7 @@
 
 ```
  
-    KISSY.use(kg/xlist/3.0.0/dataset",function(S,DataSet){
+    KISSY.use(kg/xlist/3.0.3/dataset",function(S,DataSet){
 
         var ds = new DataSet();
         

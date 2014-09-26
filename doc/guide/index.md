@@ -2,7 +2,7 @@
 
 Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大列表，支持复杂的文档流类型，支持异步加载、刷新、滚动条等功能。
 
-* 版本：3.0.0
+* 版本：3.0.3
 * 作者：伯才
 * demo：
 
@@ -33,7 +33,7 @@ Xlist是基于html5的无尽下拉列表实现，适用于数据量大的html大
 ### 初始化组件
 
 ```    
-S.use('kg/xlist/3.0.0/index', function (S, XList) {
+S.use('kg/xlist/3.0.3/index', function (S, XList) {
      var xlist = new XList({
      	renderTo: "#J_List",
         data: data,
@@ -170,20 +170,20 @@ var xlist = new XList({
 
 #### appendDataSet(Array)
 
-添加数据集，参考[DataSet](http://gallery.kissyui.com/xscroll/1.1.4/guide/dataset.html)类
+添加数据集，参考[DataSet](http://gallery.kissyui.com/xlist/3.0.3/guide/dataset.html)类
 
 #### removeDataSet(datasetId)
 
-移除数据集，参考[DataSet](http://gallery.kissyui.com/xscroll/1.1.4/guide/dataset.html)类
+移除数据集，参考[DataSet](http://gallery.kissyui.com/xlist/3.0.3/guide/dataset.html)类
 
 #### getDataSets
 
-获取所有数据集，参考[DataSet](http://gallery.kissyui.com/xscroll/1.1.4/guide/dataset.html)类
+获取所有数据集，参考[DataSet](http://gallery.kissyui.com/xlist/3.0.3/guide/dataset.html)类
 
 DataSet代码示例
 
 ```
-KISSY.use("node,ajax,kg/xlist/3.0.0/index,kg/xlist/3.0.0/dataset",function(S,Node,Ajax,XList,DataSet){
+KISSY.use("node,ajax,kg/xlist/3.0.3/index,kg/xlist/3.0.3/dataset",function(S,Node,Ajax,XList,DataSet){
 
         var xlist = new XList({
             renderTo: "#J_Scroll",

@@ -185,22 +185,23 @@ KISSY.add(function(S, Node, Event, XScroll, Util,DataSet) {
 		_stickyHandler:function(_offsetTop){
 			var self = this;
 			if(!self.stickyDomInfoLength) return;
-
 			var offsetTop = Math.abs(_offsetTop);
-			var tops = [];
+			//视区上方的sticky索引
+			var index = [];
+			//所有sticky的top值
 			var allTops = [];
 			for(var i = 0;i < self.stickyDomInfoLength;i++){
 				allTops.push(self.stickyDomInfo[i]._top);
 				if(offsetTop >= self.stickyDomInfo[i]._top){
-					tops.push(i);
+					index.push(i);
 				}
 			}
-			if(!tops.length){
+			if(!index.length){
 				self.stickyElement.style.display = "none";
 				self.curStickyIndex = undefined;
 				return;
 			} 
-			var curStickyIndex = Math.max.apply(null,tops);
+			var curStickyIndex = Math.max.apply(null,index);
 			if(self.curStickyIndex !==curStickyIndex){
 				self.curStickyIndex = curStickyIndex;
 				self.userConfig.renderHook.call(self, self.stickyElement, self.stickyDomInfo[self.curStickyIndex]);
