@@ -95,11 +95,13 @@ KISSY.add('kg/xlist/3.0.3/index',function(S, Node, Event, XScroll, Util,DataSet)
 		removeDataSet:function(id){
 			var self = this;
 			if(!id) return;
+			var index;
 			for(var i = 0,l = self.datasets.length;i < l;i++){
 				if(id == self.datasets[i].getId()){
-					self.datasets[i].splice(i,1);
+					index = i;
 				}
 			}
+			self.datasets.splice(index,1);
 		},
 		getDataSets:function(){
 			var self = this;
@@ -223,27 +225,38 @@ KISSY.add('kg/xlist/3.0.3/index',function(S, Node, Event, XScroll, Util,DataSet)
 				}
 			})
 		},
-		_stickyHandler:function(offsetTop){
+		_stickyHandler:function(_offsetTop){
 			var self = this;
-			if(!self.stickyDomInfoLength || offsetTop > 0) return;
-			var offsetTop = Math.abs(offsetTop);
+			if(!self.stickyDomInfoLength) return;
+
+			var offsetTop = Math.abs(_offsetTop);
 			var tops = [];
+			var allTops = [];
 			for(var i = 0;i < self.stickyDomInfoLength;i++){
-				tops.push(self.stickyDomInfo[i]._top);
+				allTops.push(self.stickyDomInfo[i]._top);
 				if(offsetTop >= self.stickyDomInfo[i]._top){
-					self.userConfig.renderHook.call(self, self.stickyElement, self.stickyDomInfo[i]);
-					self.stickyElement.style.display = "block";
-					self.stickyElement.style.height = self.stickyDomInfo[i].style.height + "px";
-					self.stickyElement.className = self.stickyDomInfo[i].className || "";
-					for (var attrName in self.stickyDomInfo[i].style) {
-						if (attrName != "height" && attrName != "display" && attrName != "position") {
-							self.stickyElement.style[attrName] = self.stickyDomInfo[i].style[attrName];
-						}
+					tops.push(i);
+				}
+			}
+			if(!tops.length) return;
+			var curStickyIndex = Math.max.apply(null,tops);
+			if(self.curStickyIndex !==curStickyIndex){
+				self.curStickyIndex = curStickyIndex;
+				self.userConfig.renderHook.call(self, self.stickyElement, self.stickyDomInfo[self.curStickyIndex]);
+				self.stickyElement.style.display = "block";
+				self.stickyElement.style.height = self.stickyDomInfo[self.curStickyIndex].style.height + "px";
+				self.stickyElement.className = self.stickyDomInfo[self.curStickyIndex].className || "";
+				for (var attrName in self.stickyDomInfo[self.curStickyIndex].style) {
+					if (attrName != "height" && attrName != "display" && attrName != "position") {
+						self.stickyElement.style[attrName] = self.stickyDomInfo[self.curStickyIndex].style[attrName];
 					}
 				}
 			}
-			if(offsetTop < Math.min.apply(null,tops)) {
+
+			//如果超过第一个sticky则隐藏
+			if(-_offsetTop < Math.min.apply(null,allTops)) {
 				self.stickyElement.style.display = "none";
+				self.curStickyIndex = undefined;
 				return;
 			}
 
