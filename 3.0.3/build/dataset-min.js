@@ -1,2 +1,2 @@
-/*!build time : 2014-09-26 10:26:19 AM*/
+/*!build time : 2014-09-26 10:32:29 AM*/
 KISSY.add("kg/xlist/3.0.3/dataset",function(){var a=function(a){this.data=a&&a.data||[],this.id=a&&a.id||"_ds_"+Date.now()};return a.prototype.appendData=function(a){this.data=this.data.concat(a)},a.prototype.removeData=function(){this.data=[]},a.prototype.getData=function(){return this.data},a.prototype.setId=function(a){return a?(this.id=a,this.id):void 0},a.prototype.getId=function(){return this.id},a});

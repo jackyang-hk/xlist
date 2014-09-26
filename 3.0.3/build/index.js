@@ -238,7 +238,11 @@ KISSY.add('kg/xlist/3.0.3/index',function(S, Node, Event, XScroll, Util,DataSet)
 					tops.push(i);
 				}
 			}
-			if(!tops.length) return;
+			if(!tops.length){
+				self.stickyElement.style.display = "none";
+				self.curStickyIndex = undefined;
+				return;
+			} 
 			var curStickyIndex = Math.max.apply(null,tops);
 			if(self.curStickyIndex !==curStickyIndex){
 				self.curStickyIndex = curStickyIndex;

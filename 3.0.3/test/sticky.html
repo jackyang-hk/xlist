@@ -133,11 +133,7 @@
         var data = (function() {
             var tmp = [
             // 吸顶元素
-            
-            ];
-            for (var i = 1; i <= 50; i++) {
-                if(i == 2){
-                   tmp.push( {
+            {
                 data:{
                     text:$("#J_Sticky1").html()
                 },
@@ -151,8 +147,9 @@
                     "z-index":9999,
                     width:"100%"
                 }
-            })
-                }
+            }
+            ];
+            for (var i = 1; i <= 50; i++) {
                 if(i == 3){
                     //非回收元素
                     tmp.push({
