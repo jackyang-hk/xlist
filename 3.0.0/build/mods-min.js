@@ -1,2 +1,0 @@
-/*!build time : 2014-09-02 4:03:24 PM*/
-KISSY.config("modules",{"kg/xlist/3.0.0/index":{requires:["node","event","kg/xscroll/1.1.4/index","kg/xscroll/1.1.4/util"]}});
